@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
@@ -19,7 +20,9 @@ class Category extends Model
         'name',
         'slug',
         'description',
-        'is_visible', // To toggle visibility on the public site
+        'is_visible',
+        'parent_id', // Added for nested categories
+        'image_path', // Added for category image
     ];
 
     /**
@@ -36,11 +39,26 @@ class Category extends Model
 
     /**
      * A Category can have many Products.
-     * (We will create the Product model later)
      */
     public function products(): HasMany
     {
-        // return $this->hasMany(Product::class);
-        return $this->hasMany('App\Models\Product'); // Placeholder for now
+        return $this->hasMany(Product::class);
+    }
+
+    /**
+     * A Category can have one parent.
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'parent_id');
+    }
+
+    /**
+     * A Category can have many children.
+     */
+    public function children(): HasMany
+    {
+        return $this->hasMany(Category::class, 'parent_id');
     }
 }
+

@@ -10,6 +10,7 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\Admin\ProductImageController;
+use App\Http\Controllers\Admin\ProductVideoController;
 use App\Http\Controllers\Auth\LoginController as UserLoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CheckoutController;
@@ -21,6 +22,8 @@ Route::get('/', function () {
 Route::get('shop', [ShopController::class, 'index'])->name('shop.index');
 Route::get('shop/products/{slug}', [ShopController::class, 'show'])->name('shop.show');
 Route::get('shop/categories/{slug}', [ShopController::class, 'category'])->name('shop.category');
+
+Route::get('categories', [ShopController::class, 'categoriesIndex'])->name('shop.categories.index');
 
 // Cart Routes
 Route::prefix('cart')->name('cart.')->group(function () {
@@ -78,6 +81,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // (Deletes a specific image by its ID)
         Route::delete('images/{image}', [ProductImageController::class, 'destroy'])
             ->name('images.destroy');
+
+        Route::post('products/{product}/videos', [ProductVideoController::class, 'store'])
+        ->name('products.videos.store');
+
+        Route::delete('videos/{video}', [ProductVideoController::class, 'destroy'])
+            ->name('videos.destroy');
 
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');

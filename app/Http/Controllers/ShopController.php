@@ -23,6 +23,17 @@ class ShopController extends Controller
         return view('shop.index', compact('products', 'categories'));
     }
 
+    public function categoriesIndex()
+    {
+        $categories = Category::where('is_visible', true)
+                                ->whereNull('parent_id') // Get only top-level
+                                ->with('children') // Eager load children
+                                ->get();
+        
+        // This method requires a new view file: resources/views/shop/categories.blade.php
+        return view('shop.categories', compact('categories'));
+    }
+
     /**
      * Display a single product page.
      */

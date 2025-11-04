@@ -51,4 +51,9 @@ class Product extends Model
     {
         return $this->hasMany(ProductImage::class);
     }
+
+    public function videos(): HasMany
+    {
+        return $this->hasMany(ProductVideo::class);
+    }
 }

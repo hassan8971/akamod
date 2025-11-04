@@ -1,0 +1,25 @@
+/* @font-face {
+  font-display: fallback;
+  font-family: IRANYekanXVF;
+  font-weight: 100 1000;
+  src: url(../fonts/IRANYekanXVFaNumVF.woff) format("woff-variations"),
+    url(../fonts/IRANYekanXVFaNumVF.woff) format("woff");
+} */
+
+@font-face {
+    font-family: "IRANSansX";
+    src: url("../fonts/IRANSansX-Medium.woff") format("woff2"),
+         url("../fonts/IRANSansX-Medium.woff2") format("woff");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+/* 
+@font-face {
+    font-family: "Vazir";
+    src: url("../fonts/Vazir-Medium.woff") format("woff2"),
+         url("../fonts/Vazir-Medium.woff2") format("woff");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+} */
