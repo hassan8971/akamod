@@ -38,11 +38,10 @@ class CheckoutController extends Controller
 
         $request->validate([
             'full_name' => 'required|string|max:255',
-            'address_line_1' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
             'city' => 'required|string|max:255',
             'state' => 'required|string|max:255',
             'zip_code' => 'required|string|max:20',
-            'country' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'save_address' => 'nullable|boolean',
             'payment_method' => 'required|string', // e.g., 'stripe'
@@ -57,12 +56,10 @@ class CheckoutController extends Controller
             $shippingAddress = Address::create([
                 'user_id' => Auth::id(), // Will be null for guests
                 'full_name' => $request->full_name,
-                'address_line_1' => $request->address_line_1,
-                'address_line_2' => $request->address_line_2,
+                'address' => $request->address,
                 'city' => $request->city,
                 'state' => $request->state,
                 'zip_code' => $request->zip_code,
-                'country' => $request->country,
                 'phone' => $request->phone,
             ]);
 
@@ -87,6 +84,12 @@ class CheckoutController extends Controller
                 'total' => $total,
                 'payment_method' => $request->payment_method,
                 'payment_status' => 'pending',
+            ]);
+
+            $orderCode = date('Ym') . str_pad($order->id, 5, '0', STR_PAD_LEFT);
+            
+            $order->update([
+                'order_code' => $orderCode
             ]);
 
             // 3. Create Order Items

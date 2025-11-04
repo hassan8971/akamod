@@ -21,7 +21,6 @@ return new class extends Migration
             $table->unsignedInteger('price'); // Store as cents (e.g., 1000 = $10.00)
             $table->unsignedInteger('stock')->default(0); // Stock quantity
             
-            $table->
 
             $table->timestamps();
         });

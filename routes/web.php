@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\ProductVideoController;
 use App\Http\Controllers\Auth\LoginController as UserLoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\UserPanelController;
 
 Route::get('/', function () {
     return view('home');
@@ -112,4 +113,23 @@ Route::middleware(['auth'])->group(function () {
     // })->name('home');
     
     // Add other protected user routes here (e.g., profile, orders)
+});
+
+// --- پنل کاربری (نیازمند ورود کاربر) ---
+Route::middleware(['auth'])->prefix('my-account')->name('user.')->group(function () {
+    
+    // /my-account (تاریخچه سفارشات)
+    Route::get('/', [UserPanelController::class, 'index'])->name('index');
+    
+    // /my-account/orders/{orderId}
+    // (این مسیری است که فایل داخل Canvas شما استفاده می‌کند)
+    Route::get('orders/{orderId}', [UserPanelController::class, 'showOrder'])->name('order.show');
+    
+    // /my-account/profile
+    Route::get('profile', [UserPanelController::class, 'profile'])->name('profile');
+    Route::post('profile', [UserPanelController::class, 'updateProfile'])->name('profile.update');
+    Route::post('password', [UserPanelController::class, 'updatePassword'])->name('password.update');
+    
+    // می‌توانید مسیرهای آدرس را بعداً اضافه کنید
+    // Route::get('addresses', [UserPanelController::class, 'addresses'])->name('addresses');
 });

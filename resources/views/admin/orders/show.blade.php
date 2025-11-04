@@ -64,12 +64,8 @@
                         <p class_="font-medium">
                             {{ $order->address->first_name }} {{ $order->address->last_name }}
                         </p>
-                        <p>{{ $order->address->address_line_1 }}</p>
-                        @if ($order->address->address_line_2)
-                            <p>{{ $order->address->address_line_2 }}</p>
-                        @endif
+                        <p>{{ $order->address->address }}</p>
                         <p>{{ $order->address->city }}, {{ $order->address->state }} {{ $order->address->zip_code }}</p>
-                        <p>{{ $order->address->country }}</p>
                         <hr class="my-2">
                         <p><span class="font-medium">ایمیل:</span> {{ $order->address->email }}</p>
                         <p><span class="font-medium">تلفن:</span> {{ $order->address->phone }}</p>

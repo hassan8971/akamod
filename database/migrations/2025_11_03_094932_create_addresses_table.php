@@ -18,12 +18,10 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             
             $table->string('full_name');
-            $table->string('address_line_1');
-            $table->string('address_line_2')->nullable();
+            $table->string('address');
             $table->string('city');
             $table->string('state'); // State/Province/Region
             $table->string('zip_code');
-            $table->string('country');
             $table->string('phone')->nullable();
 
             $table->timestamps();

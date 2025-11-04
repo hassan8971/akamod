@@ -45,14 +45,14 @@
                     </div>
 
                     <div class="mt-6">
-                        <label for="address_line_1" class="block text-sm font-medium text-gray-700 text-right">آدرس (خط ۱)</label>
-                        <input type="text" id="address_line_1" name="address_line_1" value="{{ old('address_line_1') }}"
+                        <label for="address" class="block text-sm font-medium text-gray-700 text-right">آدرس </label>
+                        <input type="text" id="address" name="address" value="{{ old('address') }}"
                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-right" required>
                     </div>
 
                     <div class="mt-6">
-                        <label for="address_line_2" class="block text-sm font-medium text-gray-700 text-right">آدرس (خط ۲ - اختیاری)</label>
-                        <input type="text" id="address_line_2" name="address_line_2" value="{{ old('address_line_2') }}"
+                        <label for="email" class="block text-sm font-medium text-gray-700 text-right"> ایمیل </label>
+                        <input type="text" id="email" name="email" value="{{ old('email') }}"
                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-right">
                     </div>
 
@@ -74,11 +74,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-6">
-                        <label for="country" class="block text-sm font-medium text-gray-700 text-right">کشور</label>
-                        <input type="text" id="country" name="country" value="{{ old('country') }}"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-right" required>
-                    </div>
+                    
                     
                     @auth
                     <div class="mt-6 text-right">
