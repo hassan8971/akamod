@@ -22,6 +22,9 @@ return new class extends Migration
             $table->foreignId('billing_address_id')->nullable()->constrained('addresses')->onDelete('set null');
 
             $table->string('status')->default('pending'); // pending, processing, shipped, cancelled
+
+            $table->string('discount_code')->nullable();
+            $table->unsignedInteger('discount_amount')->default(0);
             
             $table->unsignedInteger('subtotal'); // Store in cents
             $table->unsignedInteger('shipping_cost')->default(0);

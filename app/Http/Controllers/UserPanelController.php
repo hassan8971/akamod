@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rule; // <-- این خط را برای اعتبارسنجی ایمیل اضافه کنید
 
 class UserPanelController extends Controller
 {
@@ -37,11 +38,13 @@ class UserPanelController extends Controller
                      ->with('items.productVariant', 'address')
                      ->findOrFail($orderId); // findOrFail ensures it's their order
 
-        return view('user.show', compact('user', 'order'));
+        return view('user.order-show', compact('user', 'order'));
     }
 
     /**
+     * --- جدید ---
      * Show the profile management page.
+     * (صفحه مدیریت پروفایل را نشان می‌دهد)
      */
     public function profile()
     {
@@ -50,7 +53,9 @@ class UserPanelController extends Controller
     }
 
     /**
+     * --- جدید ---
      * Update the user's profile information.
+     * (اطلاعات پروفایل کاربر را به‌روزرسانی می‌کند)
      */
     public function updateProfile(Request $request)
     {
@@ -58,24 +63,37 @@ class UserPanelController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'mobile' => 'required|string|max:20|unique:users,mobile,' . $user->id,
+            'email' => [
+                'nullable', // ایمیل می‌تواند خالی باشد
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($user->id), // باید یکتا باشد، به جز برای خود کاربر
+            ],
         ]);
 
+        // فقط فیلدهای اعتبارسنجی شده را آپدیت می‌کنیم
+        // (شماره موبایل آپدیت نمی‌شود)
         $user->update($validated);
 
         return redirect()->route('user.profile')->with('success', 'پروفایل شما با موفقیت به‌روزرسانی شد.');
     }
 
     /**
+     * --- جدید ---
      * Update the user's password.
+     * (رمز عبور کاربر را تغییر می‌دهد)
      */
     public function updatePassword(Request $request)
     {
         $user = Auth::user();
 
         $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'current_password' => ['required', 'current_password'], // بررسی رمز عبور فعلی
+            'password' => ['required', 'confirmed', Password::min(8)], // رمز جدید با تکرار
+        ], [
+            'current_password.current_password' => 'رمز عبور فعلی صحیح نمی‌باشد.',
+            'password.confirmed' => 'رمز عبور جدید و تکرار آن مطابقت ندارند.',
         ]);
 
         $user->update([

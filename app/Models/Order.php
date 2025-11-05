@@ -20,9 +20,14 @@ class Order extends Model
         'status', // e.g., 'pending', 'processing', 'shipped', 'cancelled'
         'subtotal',
         'shipping_cost',
+        'shipping_method',
+        'packaging_option_id', // <-- اضافه کردن
+        'packaging_cost',
         'total',
         'payment_method',
         'payment_status',
+        'discount_code',
+        'discount_amount',
     ];
 
     public function user(): BelongsTo

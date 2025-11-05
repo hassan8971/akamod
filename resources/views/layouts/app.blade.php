@@ -32,7 +32,6 @@
 
                 @guest
                     <a href="{{ route('login') }}" class="px-4 py-2 text-gray-600 hover:text-blue-600">ورود</a>
-                    <a href="{{ route('register') }}" class="px-4 py-2 text-gray-600 hover:text-blue-600">ثبت نام</a>
                 @else
                     <a href="{{ route('home') }}" class="px-4 py-2 text-gray-600 hover:text-blue-600">حساب کاربری من</a>
                     <a href="{{ route('logout') }}"

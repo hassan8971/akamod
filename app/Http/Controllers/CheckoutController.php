@@ -9,14 +9,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
 use Illuminate\Support\Facades\DB; // For database transactions
+use App\Models\PackagingOption;
 
 class CheckoutController extends Controller
 {
+    // Define shipping costs here (in Toman)
+    // We define it here AND in the view to ensure security
+    private $shippingOptions = [
+        'pishaz' => 35000,
+        'tipax' => 60000,
+    ];
+
     // Show the checkout page
     public function index()
     {
         if (Cart::isEmpty()) {
-            return redirect()->route('shop.index')->with('error', 'Your cart is empty.');
+            return redirect()->route('shop.index')->with('error', 'سبد خرید شما خالی است.');
         }
 
         // Get user's saved addresses if they are logged in
@@ -24,27 +32,35 @@ class CheckoutController extends Controller
         $addresses = $user ? $user->addresses : collect();
 
         $cartItems = Cart::getContent();
-        $total = Cart::getTotal();
+        
+        // --- FIX: Pass 'subtotal' to the view for Alpine.js ---
+        $subtotal = Cart::getSubTotal(); // Get subtotal as Toman integer
 
-        return view('checkout.index', compact('cartItems', 'total', 'addresses'));
+        $packagingOptions = PackagingOption::where('is_active', true)->orderBy('price')->get();
+
+        // Pass 'subtotal', not 'total'
+        return view('checkout.index', compact('cartItems', 'subtotal', 'addresses','packagingOptions'));
     }
 
     // Process the order
     public function store(Request $request)
     {
         if (Cart::isEmpty()) {
-            return redirect()->route('shop.index')->with('error', 'Your cart is empty.');
+            return redirect()->route('shop.index')->with('error', 'سبد خرید شما خالی است.');
         }
 
         $request->validate([
             'full_name' => 'required|string|max:255',
+            // --- FIX: Use 'address_line_1' to match migration ---
             'address' => 'required|string|max:255',
             'city' => 'required|string|max:255',
             'state' => 'required|string|max:255',
             'zip_code' => 'required|string|max:20',
             'phone' => 'nullable|string|max:20',
             'save_address' => 'nullable|boolean',
-            'payment_method' => 'required|string', // e.g., 'stripe'
+            // --- FIX: Validate 'shipping_method' instead of 'payment_method' ---
+            'shipping_method' => 'required|string|in:pishaz,tipax',
+            'packaging_id' => 'required|exists:packaging_options,id',
         ]);
 
         // Use a database transaction to ensure all data is saved, or none is.
@@ -52,10 +68,10 @@ class CheckoutController extends Controller
 
         try {
             // 1. Create the Shipping Address
-            // We create a new address for every order for historical accuracy
             $shippingAddress = Address::create([
                 'user_id' => Auth::id(), // Will be null for guests
                 'full_name' => $request->full_name,
+                // --- FIX: Save 'address_line_1' and 'country' ---
                 'address' => $request->address,
                 'city' => $request->city,
                 'state' => $request->state,
@@ -65,14 +81,22 @@ class CheckoutController extends Controller
 
             // If user is logged in and checked "Save Address", save it to their profile
             if (Auth::check() && $request->save_address) {
-                // (You might want to add logic here to prevent duplicates)
                 Auth::user()->addresses()->create($shippingAddress->toArray());
             }
 
             // 2. Create the Order
-            $subtotal = Cart::getSubTotal(false); // Store in cents
-            $total = Cart::getTotal(); // Store in cents
-            // (In a real app, you'd calculate shipping/taxes here)
+            $subtotal = Cart::getSubTotal();
+            
+            // --- FIX: Get shipping cost securely from server-side ---
+            $shippingCost = $this->shippingOptions[$request->shipping_method] ?? 0;
+
+            $packagingOption = PackagingOption::findOrFail($request->packaging_id);
+            $packagingCost = $packagingOption->price;
+
+            $total = $subtotal + $shippingCost + $packagingCost;
+            
+            // --- FIX: Get shipping method name ---
+            $shippingMethodName = $request->shipping_method === 'pishaz' ? 'پست پیشتاز' : 'تیپاکس';
 
             $order = Order::create([
                 'user_id' => Auth::id(),
@@ -80,13 +104,17 @@ class CheckoutController extends Controller
                 'billing_address_id' => $shippingAddress->id, // Assuming same for now
                 'status' => 'pending',
                 'subtotal' => $subtotal,
-                'shipping_cost' => 0, // TODO: Implement shipping
+                'shipping_cost' => $shippingCost, // <-- Save the cost
+                'shipping_method' => $shippingMethodName, // <-- Save the name
+                'packaging_option_id' => $packagingOption->id, // <-- ذخیره ID بسته‌بندی
+                'packaging_cost' => $packagingCost,
                 'total' => $total,
-                'payment_method' => $request->payment_method,
+                'payment_method' => 'cod', // Hardcode payment method for now
                 'payment_status' => 'pending',
             ]);
 
-            $orderCode = date('Ym') . str_pad($order->id, 5, '0', STR_PAD_LEFT);
+            // --- FIX: Corrected order code generation ---
+            $orderCode = date('Ym') . '-' . str_pad($order->id, 5, '0', STR_PAD_LEFT);
             
             $order->update([
                 'order_code' => $orderCode
@@ -96,23 +124,20 @@ class CheckoutController extends Controller
             foreach (Cart::getContent() as $item) {
                 OrderItem::create([
                     'order_id' => $order->id,
-                    'product_variant_id' => $item->attributes->variant_id,
+                    // --- FIX: Use $item->id (which is the variant_id from CartController) ---
+                    'product_variant_id' => $item->id,
                     'product_name' => $item->name,
                     'quantity' => $item->quantity,
-                    'price' => $item->price, // Store in cents
+                    'price' => $item->price, // Toman integer
                 ]);
                 
                 // 4. (Optional but recommended) Decrement stock
-                // $variant = ProductVariant::find($item->attributes->variant_id);
+                // $variant = ProductVariant::find($item->id);
                 // $variant->decrement('stock', $item->quantity);
             }
 
-            // 5. SIMULATE PAYMENT
-            // In a real app, you'd redirect to Stripe here.
-            // For now, we'll just "confirm" the payment.
-            if ($request->payment_method == 'cod') { // Cash on Delivery example
-                $order->update(['payment_status' => 'paid', 'status' => 'processing']);
-            }
+            // 5. Update status (e.g., payment is pending, order is processing)
+            $order->update(['status' => 'processing']);
             
             // 6. Clear the cart
             Cart::clear();
@@ -122,12 +147,12 @@ class CheckoutController extends Controller
 
             // Redirect to a "Thank You" page
             return redirect()->route('checkout.success', $order)
-                ->with('success', 'Your order has been placed!');
+                ->with('success', 'سفارش شما با موفقیت ثبت شد!');
 
         } catch (\Exception $e) {
             // If anything went wrong, roll back the database changes
             DB::rollBack();
-            return redirect()->back()->with('error', 'Something went wrong. Please try again. ' . $e->getMessage())->withInput();
+            return redirect()->back()->with('error', 'خطایی رخ داد: ' . $e->getMessage())->withInput();
         }
     }
 

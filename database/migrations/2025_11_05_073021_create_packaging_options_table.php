@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('admins', function (Blueprint $table) {
+        Schema::create('packaging_options', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('username')->unique();
-            $table->string('email')->unique();
-            $table->string('mobile')->unique();
-            $table->string('password');
+            $table->string('name'); // e.g., "بسته‌بندی هدیه"
+            $table->unsignedInteger('price')->default(0); // Price in Toman
+            $table->boolean('is_active')->default(true); // To toggle visibility
             $table->timestamps();
         });
     }
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('admins');
+        Schema::dropIfExists('packaging_options');
     }
 };

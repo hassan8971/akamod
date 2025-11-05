@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PackagingOptionController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\Admin\ProductVariantController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Admin\ProductImageController;
 use App\Http\Controllers\Admin\ProductVideoController;
 use App\Http\Controllers\Auth\LoginController as UserLoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\OtpLoginController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\UserPanelController;
 
@@ -43,8 +45,6 @@ Route::prefix('checkout')->name('checkout.')->middleware('auth')->group(function
 });
 
 // Admin Login
-Route::get('admin/login', [AdminLoginController::class, 'showLoginForm'])->name('admin.login');
-Route::post('admin/login', [AdminLoginController::class, 'login']);
 Route::post('admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
 
 // Admin Dashboard (Protected)
@@ -93,17 +93,31 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
 
+        Route::resource('packaging-options', PackagingOptionController::class)->except(['show']);
     });
 });
 
-// Login
-Route::get('login', [UserLoginController::class, 'showLoginForm'])->name('login');
-Route::post('login', [UserLoginController::class, 'login']);
+// // Login
+// Route::get('login', [UserLoginController::class, 'showLoginForm'])->name('login');
+// Route::post('login', [UserLoginController::class, 'login']);
 Route::post('logout', [UserLoginController::class, 'logout'])->name('logout');
 
-// Registration
-Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('register', [RegisterController::class, 'register']);
+// // Registration
+// Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+// Route::post('register', [RegisterController::class, 'register']);
+
+// --- User Auth Routes (OTP Passwordless) ---
+Route::middleware('guest')->group(function () {
+    // Step 1: Show mobile number form
+    Route::get('login', [OtpLoginController::class, 'showLoginForm'])->name('login');
+    // Step 1: Handle mobile number submission
+    Route::post('login', [OtpLoginController::class, 'sendOtp'])->name('otp.send');
+    
+    // Step 2: Show verification code form
+    Route::get('login/verify', [OtpLoginController::class, 'showVerifyForm'])->name('otp.verify.form');
+    // Step 2: Handle code submission
+    Route::post('login/verify', [OtpLoginController::class, 'verifyOtp'])->name('otp.verify');
+});
 
 // Protected "Home" Route
 // Users will be redirected here after login.
