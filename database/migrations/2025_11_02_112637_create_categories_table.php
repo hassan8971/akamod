@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->unique();
             $table->string('slug')->unique(); // Slugs are used for clean URLs, e.g., /categories/t-shirts
             $table->text('description')->nullable();
             $table->boolean('is_visible')->default(true); // Control public visibility

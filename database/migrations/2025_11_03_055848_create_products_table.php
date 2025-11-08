@@ -10,6 +10,11 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('admin_id')
+                  ->nullable()
+                  ->constrained('admins') // Link to 'id' on 'admins' table
+                  ->onDelete('set null'); // If admin is deleted, set this to NULL
             
             // Link to the categories table
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
@@ -21,6 +26,10 @@ return new class extends Migration
             $table->string('product_id')->nullable()->unique(); // Your internal SKU
             $table->string('boxing_type')->nullable(); // e.g., "Box of 6", "Single Item"
             $table->boolean('is_visible')->default(true);
+            $table->boolean('is_for_men')->default(false);
+            $table->boolean('is_for_women')->default(false);
+
+            
             
             $table->timestamps();
         });

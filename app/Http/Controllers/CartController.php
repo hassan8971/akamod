@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\ProductVariant;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
+use App\Models\Discount;
+use Darryldecode\Cart\CartCondition;
 
 class CartController extends Controller
 {
@@ -97,4 +99,6 @@ class CartController extends Controller
         Cart::clear();
         return redirect()->route('cart.index')->with('success', 'Cart cleared.');
     }
+
+    
 }

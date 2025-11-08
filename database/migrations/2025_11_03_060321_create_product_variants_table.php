@@ -13,13 +13,15 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
 
             // The specific properties
-            $table->string('name')->nullable(); // e.g., "Small, Red"
             $table->string('color')->nullable();
             $table->string('size')->nullable();
             
             // Price & Stock belong to the VARIANT, not the product
             $table->unsignedInteger('price'); // Store as cents (e.g., 1000 = $10.00)
+            $table->unsignedInteger('discount_price')->nullable();
+            $table->unsignedInteger('buy_price')->nullable();
             $table->unsignedInteger('stock')->default(0); // Stock quantity
+            $table->string('buy_source')->nullable(); // Stock quantity
             
 
             $table->timestamps();

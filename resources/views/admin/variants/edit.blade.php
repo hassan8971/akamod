@@ -29,14 +29,14 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700 text-right">نام مدل (مثلاً: «کوچک، قرمز»)</label>
-                    <input type="text" name="name" id="name" value="{{ old('name', $variant->name) }}" 
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-right" required>
-                </div>
-                <div>
-                    <label for="size" class="block text-sm font-medium text-gray-700 text-right">اندازه</label>
-                    <input type="text" name="size" id="size" value="{{ old('size', $variant->size) }}" 
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-right">
+                    <label for="variant_size" class="block text-sm font-medium text-gray-700">سایز</label>
+                    <select name="size" id="variant_size"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach ($sizes as $size)
+                            <option value="{{ $size }}">{{ $size }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <label for="color" class="block text-sm font-medium text-gray-700 text-right">رنگ</label>
@@ -46,13 +46,28 @@
                 <div>
                     <!-- We divide by 100 to show dollars again -->
                     <label for="price" class="block text-sm font-medium text-gray-700 text-right">قیمت (به تومان)</label>
-                    <input type="number" name="price" id="price" value="{{ old('price', $variant->price / 100) }}" 
-                           step="0.01" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-right" required>
+                    <input type="number" name="price" id="price" value="{{ old('price', $variant->price) }}" 
+                           step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-right" required>
+                </div>
+                <div>
+                    <label for="discount_price" class="block text-sm font-medium text-gray-700">قیمت با تخفیف (اختیاری)</label>
+                    <input type="number" name="discount_price" id="discount_price" value="{{ old('discount_price', $variant->discount_price) }}" 
+                           step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="مثلا: 45000">
+                </div>
+                <div>
+                    <label for="buy_price" class="block text-sm font-medium text-gray-700">قیمت خرید</label>
+                    <input type="number" name="buy_price" id="buy_price" value="{{ old('buy_price', $variant->buy_price) }}" 
+                           step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="مثلا: 45000">
                 </div>
                 <div>
                     <label for="stock" class="block text-sm font-medium text-gray-700 text-right">تعداد موجودی</label>
                     <input type="number" name="stock" id="stock" value="{{ old('stock', $variant->stock) }}" 
                            min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-right" required>
+                </div>
+                <div>
+                    <label for="buy_source" class="block text-sm font-medium text-gray-700 text-right">سورس خرید</label>
+                    <input type="text" name="buy_source" id="buy_source" value="{{ old('buy_source', $variant->buy_source) }}" 
+                           min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-right">
                 </div>
             </div>
 

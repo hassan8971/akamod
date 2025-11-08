@@ -16,11 +16,13 @@ class ProductVariantController extends Controller
     public function store(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
             'color' => 'nullable|string|max:100',
             'size' => 'nullable|string|max:100',
+            'discount_price' => 'nullable|integer|min:0',
             'price' => 'required|numeric|min:0',
+            'buy_price' => 'nullable|integer|min:0',
             'stock' => 'required|integer|min:0',
+            'buy_source' => 'string',
         ]);
 
         // Convert price from dollars (e.g., 10.50) to cents (1050)
@@ -41,8 +43,10 @@ class ProductVariantController extends Controller
         // We need to load the product this variant belongs to
         // This is for the "Back" link
         $product = $variant->product; 
+        $sizes = $this->getSizeList();
         
-        return view('admin.variants.edit', compact('variant', 'product'));
+        
+        return view('admin.variants.edit', compact('variant', 'product', 'sizes'));
     }
 
     /**
@@ -51,11 +55,13 @@ class ProductVariantController extends Controller
     public function update(Request $request, ProductVariant $variant)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
             'color' => 'nullable|string|max:100',
             'size' => 'nullable|string|max:100',
             'price' => 'required|numeric|min:0',
+            'discount_price' => 'nullable|integer|min:0',
+            'buy_price' => 'nullable|integer|min:0',
             'stock' => 'required|integer|min:0',
+            'buy_source' => 'string',
         ]);
 
         // Convert price from dollars (e.g., 10.50) to cents (1050)
@@ -79,5 +85,15 @@ class ProductVariantController extends Controller
 
         return redirect()->route('admin.products.edit', $product)
             ->with('success', 'Variant deleted successfully.');
+    }
+
+    private function getSizeList(): array
+    {
+        $sizes = [];
+        for ($i = 36.5; $i <= 47; $i += 0.5) {
+            // Convert to string to handle .0 and .5 correctly
+            $sizes[] = (string)$i;
+        }
+        return $sizes;
     }
 }

@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
 use Illuminate\Support\Facades\DB; // For database transactions
 use App\Models\PackagingOption;
+use App\Models\Discount;
+use Darryldecode\Cart\CartCondition;
 
 class CheckoutController extends Controller
 {
@@ -38,8 +40,17 @@ class CheckoutController extends Controller
 
         $packagingOptions = PackagingOption::where('is_active', true)->orderBy('price')->get();
 
+        $discountAmount = 0;
+        $discountCode = null;
+        $discountCondition = Cart::getConditions()->first(function ($c) { return $c->getType() === 'discount'; });
+        if ($discountCondition) {
+            $calculated = $discountCondition->getCalculatedValue($subtotal);
+            $discountAmount = -abs($calculated); // Ensure it's negative
+            $discountCode = $discountCondition->getName();
+        }
+
         // Pass 'subtotal', not 'total'
-        return view('checkout.index', compact('cartItems', 'subtotal', 'addresses','packagingOptions'));
+        return view('checkout.index', compact('cartItems', 'subtotal', 'addresses','packagingOptions', 'discountAmount', 'discountCode'));
     }
 
     // Process the order
@@ -93,7 +104,17 @@ class CheckoutController extends Controller
             $packagingOption = PackagingOption::findOrFail($request->packaging_id);
             $packagingCost = $packagingOption->price;
 
-            $total = $subtotal + $shippingCost + $packagingCost;
+            $discountAmount = 0;
+            $discountCode = null;
+            $discountCondition = Cart::getConditions()->first(function ($c) { return $c->getType() === 'discount'; });
+            
+            if ($discountCondition) {
+                $calculated = $discountCondition->getCalculatedValue($subtotal);
+                $discountAmount = -abs($calculated); // Ensure it's negative
+                $discountCode = $discountCondition->getName();
+            }
+
+            $total = $subtotal + $shippingCost + $packagingCost + $discountAmount;
             
             // --- FIX: Get shipping method name ---
             $shippingMethodName = $request->shipping_method === 'pishaz' ? 'پست پیشتاز' : 'تیپاکس';
@@ -108,6 +129,8 @@ class CheckoutController extends Controller
                 'shipping_method' => $shippingMethodName, // <-- Save the name
                 'packaging_option_id' => $packagingOption->id, // <-- ذخیره ID بسته‌بندی
                 'packaging_cost' => $packagingCost,
+                'discount_code' => $discountCode,
+                'discount_amount' => abs($discountAmount),
                 'total' => $total,
                 'payment_method' => 'cod', // Hardcode payment method for now
                 'payment_status' => 'pending',
@@ -161,5 +184,77 @@ class CheckoutController extends Controller
     {
         // You'll need to create this view
         return view('checkout.success', compact('order'));
+    }
+
+    public function applyDiscount(Request $request)
+    {
+        $request->validate(['discount_code' => 'required|string']);
+        $code = $request->discount_code;
+        $subtotal = Cart::getSubTotal();
+
+        $discount = Discount::where('code', $code)->first();
+
+        // Validation checks
+        if (!$discount) {
+            return response()->json(['success' => false, 'message' => 'کد تخفیف معتبر نیست.'], 404);
+        }
+        if (!$discount->is_active) {
+            return response()->json(['success' => false, 'message' => 'کد تخفیف فعال نیست.'], 422);
+        }
+        if ($discount->expires_at && $discount->expires_at->isPast()) {
+            return response()->json(['success' => false, 'message' => 'کد تخفیف منقضی شده است.'], 422);
+        }
+        if ($discount->starts_at && $discount->starts_at->isFuture()) {
+            return response()->json(['success' => false, 'message' => 'زمان استفاده از این کد تخفیف هنوز شروع نشده است.'], 422);
+        }
+        if ($discount->usage_limit && $discount->times_used >= $discount->usage_limit) {
+            return response()->json(['success' => false, 'message' => 'ظرفیت استفاده از این کد تخفیف تمام شده است.'], 422);
+        }
+        if ($discount->min_purchase > $subtotal) {
+            return response()->json(['success' => false, 'message' => 'حداقل خرید برای استفاده از این کد ' . number_format($discount->min_purchase) . ' تومان است.'], 422);
+        }
+
+        // Clear old conditions
+        Cart::clearCartConditions();
+
+        // Prepare new condition with absolute value to ensure negativity
+        $discount_value = abs($discount->value);
+        $value = $discount->type == 'percent' ? '-' . $discount_value . '%' : '-' . $discount_value;
+        
+        $condition = new CartCondition([
+            'name' => $discount->code,
+            'type' => 'discount',
+            'target' => 'total',
+            'value' => $value,
+        ]);
+        Cart::condition($condition);
+
+        // Get the new calculated discount amount
+        $calculated = $condition->getCalculatedValue($subtotal);
+        $discountAmount = -abs($calculated); // Ensure it's negative
+
+        return response()->json([
+            'success' => true,
+            'message' => 'کد تخفیف با موفقیت اعمال شد.',
+            'discount_amount' => $discountAmount,
+            'discount_code' => $discount->code,
+        ]);
+    }
+
+    // --- NEW METHOD 2: Remove Discount (JSON Response) ---
+    /**
+     * Remove applied discount via AJAX from checkout page.
+     * (حذف کد تخفیف از طریق ای‌جکس)
+     */
+    public function removeDiscount()
+    {
+        Cart::clearCartConditions();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'کد تخفیف حذف شد.',
+            'discount_amount' => 0,
+            'discount_code' => null,
+        ]);
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PackagingOptionController;
+use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\Admin\ProductVariantController;
@@ -42,6 +43,9 @@ Route::prefix('checkout')->name('checkout.')->middleware('auth')->group(function
     Route::get('/', [CheckoutController::class, 'index'])->name('index');
     Route::post('/', [CheckoutController::class, 'store'])->name('store');
     Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
+
+    Route::post('discount/apply', [CheckoutController::class, 'applyDiscount'])->name('discount.apply');
+    Route::post('discount/remove', [CheckoutController::class, 'removeDiscount'])->name('discount.remove');
 });
 
 // Admin Login
@@ -94,6 +98,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
 
         Route::resource('packaging-options', PackagingOptionController::class)->except(['show']);
+        Route::resource('discounts', DiscountController::class)->except(['show']);
     });
 });
 
@@ -144,6 +149,21 @@ Route::middleware(['auth'])->prefix('my-account')->name('user.')->group(function
     Route::post('profile', [UserPanelController::class, 'updateProfile'])->name('profile.update');
     Route::post('password', [UserPanelController::class, 'updatePassword'])->name('password.update');
     
-    // می‌توانید مسیرهای آدرس را بعداً اضافه کنید
-    // Route::get('addresses', [UserPanelController::class, 'addresses'])->name('addresses');
+    // /my-account/addresses (لیست آدرس‌ها)
+    Route::get('addresses', [UserPanelController::class, 'addressesIndex'])->name('addresses.index');
+    
+    // /my-account/addresses/create (فرم ایجاد آدرس)
+    Route::get('addresses/create', [UserPanelController::class, 'addressesCreate'])->name('addresses.create');
+    
+    // (ذخیره آدرس جدید)
+    Route::post('addresses', [UserPanelController::class, 'addressesStore'])->name('addresses.store');
+    
+    // /my-account/addresses/{address}/edit (فرم ویرایش آدرس)
+    Route::get('addresses/{address}/edit', [UserPanelController::class, 'addressesEdit'])->name('addresses.edit');
+    
+    // (به‌روزرسانی آدرس)
+    Route::put('addresses/{address}', [UserPanelController::class, 'addressesUpdate'])->name('addresses.update');
+    
+    // (حذف آدرس)
+    Route::delete('addresses/{address}', [UserPanelController::class, 'addressesDestroy'])->name('addresses.destroy');
 });

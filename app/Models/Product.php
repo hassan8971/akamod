@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Product extends Model
 {
@@ -19,12 +20,17 @@ class Product extends Model
         'product_id', // Your internal SKU
         'boxing_type',
         'is_visible',
+        'is_for_men',
+        'is_for_women',
+        'admin_id',
     ];
 
     protected function casts(): array
     {
         return [
             'is_visible' => 'boolean',
+            'is_for_men' => 'boolean',
+            'is_for_women' => 'boolean',
         ];
     }
 
@@ -55,5 +61,20 @@ class Product extends Model
     public function videos(): HasMany
     {
         return $this->hasMany(ProductVideo::class);
+    }
+    public function relatedProducts(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Product::class,          // The model we are linking to
+            'related_products_pivot',      // The pivot table name
+            'product_id',            // Foreign key on pivot for this model
+            'related_product_id'     // Foreign key on pivot for the linked model
+        );
+    }
+
+    //  Get the admin who created this product.
+    public function admin(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class);
     }
 }

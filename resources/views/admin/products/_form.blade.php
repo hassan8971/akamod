@@ -46,17 +46,40 @@
             </select>
         </div>
         
-        <div>
-            <label for="product_id" class="block text-sm font-medium text-gray-700 text-right">شناسه محصول / SKU</label>
+        <div class="bg-white shadow rounded-lg p-4">
+            <label for="product_id" class="block text-sm font-medium text-gray-700">شناسه محصول (SKU)</label>
             <input type="text" name="product_id" id="product_id" value="{{ old('product_id', $product->product_id ?? '') }}" 
-                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-right">
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-500" 
+                   dir="ltr">
         </div>
 
-        <div class="flex items-center text-right">
-            <input type="hidden" name="is_visible" value="0"> <input type="checkbox" name="is_visible" id="is_visible" value="1" 
-                   @isset($product) {{ old('is_visible', $product->is_visible) ? 'checked' : '' }} @else checked @endisset
-                   class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-            <label for="is_visible" class="mr-2 block text-sm font-medium text-gray-900">قابل مشاهده در فروشگاه</label>
+        <div class="md:col-span-1 space-y-6">
+        <div class="bg-white shadow rounded-lg p-4">
+            <label class="block text-sm font-medium text-gray-700">جنسیت</label>
+            <div class="space-y-2 mt-3">
+                <div class="flex items-center">
+                    <input type="hidden" name="is_for_men" value="0">
+                    <input id="is_for_men" name="is_for_men" type="checkbox" value="1" 
+                           @checked(old('is_for_men', $product->is_for_men ?? false))
+                           class="h-4 w-4 text-blue-600 border-gray-300 rounded ml-2">
+                    <label for="is_for_men" class="text-sm text-gray-900">برای آقایان</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="hidden" name="is_for_women" value="0">
+                    <input id="is_for_women" name="is_for_women" type="checkbox" value="1" 
+                           @checked(old('is_for_women', $product->is_for_women ?? false))
+                           class="h-4 w-4 text-blue-600 border-gray-300 rounded ml-2">
+                    <label for="is_for_women" class="text-sm text-gray-900">برای بانوان</label>
+                </div>
+            </div>
         </div>
+        <div class="bg-white shadow rounded-lg p-4 flex items-center">
+            <input type="hidden" name="is_visible" value="0">
+            <input type="checkbox" name="is_visible" id="is_visible" value="1" 
+                   @checked(old('is_visible', $product->is_visible ?? true))
+                   class="h-4 w-4 text-blue-600 border-gray-300 rounded ml-2">
+            <label for="is_visible" class="ml-2 block text-sm font-medium text-gray-900">قابل مشاهده در فروشگاه</label>
+        </div>
+    </div>
     </div>
 </div>

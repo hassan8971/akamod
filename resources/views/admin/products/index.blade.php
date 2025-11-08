@@ -29,7 +29,16 @@
                     <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         وضعیت
                     </th>
-                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100"></th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        شناسه محصول
+                    </th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        جنسیت
+                    </th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        ایجاد کننده
+                    </th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100">عملیات</th>
                 </tr>
             </thead>
             <tbody>
@@ -53,6 +62,29 @@
                                     <span class="relative">مخفی</span>
                                 </span>
                             @endif
+                        </td>
+                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-right">
+                            <p class="text-gray-900 whitespace-no-wrap">{{ $product->product_id }}</p>
+                        </td>
+                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
+                                @if($product->is_for_men && $product->is_for_women)
+                                    <span class="font-semibold text-gray-800">هردو</span>
+                                @elseif($product->is_for_men)
+                                    <span class="font-semibold text-blue-600">آقایان</span>
+                                @elseif($product->is_for_women)
+                                    <span class="font-semibold text-pink-600">بانوان</span>
+                                @else
+                                    <span class="text-gray-400">---</span>
+                                @endif
+                        </td>
+                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-right">
+                            <p class="text-gray-900 whitespace-no-wrap">
+                                @if($product->admin)
+                                {{ $product->admin->name }}
+                                @else
+                                نامشخص
+                                @endif
+                            </p>
                         </td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-left">
                             <a href="{{ route('admin.products.edit', $product) }}" class="text-blue-600 hover:text-blue-900">ویرایش</a>

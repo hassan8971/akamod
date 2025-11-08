@@ -12,18 +12,21 @@ class ProductVariant extends Model
 
     protected $fillable = [
         'product_id',
-        'name', // e.g., "Small, Red" (can be auto-generated)
         'color',
         'size',
         'price',
+        'discount_price',
+        'buy_price',
         'stock', // How many you have'
+        'buy_source',
         'boxing'
     ];
 
     protected function casts(): array
     {
         return [
-            'price' => 'decimal:2', // Store price in cents/minor units in real life
+            'price' => 'integer', 
+            'discount_price' => 'integer',
         ];
     }
 
