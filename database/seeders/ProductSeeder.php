@@ -7,7 +7,6 @@ use Illuminate\Database\Seeder;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\ProductImage;
-use App\Models\ProductVideo;
 use App\Models\Category;
 
 class ProductSeeder extends Seeder
@@ -31,8 +30,6 @@ class ProductSeeder extends Seeder
             ->has(ProductVariant::factory()->count(3), 'variants')
             // For each product, create 2 images
             ->has(ProductImage::factory()->count(2), 'images')
-            // For each product, create 1 video
-            ->has(ProductVideo::factory()->count(1), 'videos')
             // Create the product
             ->create([
                 // Assign a random category ID from the ones we found

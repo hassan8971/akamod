@@ -8,11 +8,13 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PackagingOptionController;
 use App\Http\Controllers\Admin\DiscountController;
+use App\Http\Controllers\Admin\SizeController;
+use App\Http\Controllers\Admin\ColorController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\Admin\ProductImageController;
-use App\Http\Controllers\Admin\ProductVideoController;
+use App\Http\Controllers\Admin\VideoController;
 use App\Http\Controllers\Auth\LoginController as UserLoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\OtpLoginController;
@@ -87,11 +89,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('images/{image}', [ProductImageController::class, 'destroy'])
             ->name('images.destroy');
 
-        Route::post('products/{product}/videos', [ProductVideoController::class, 'store'])
-        ->name('products.videos.store');
-
-        Route::delete('videos/{video}', [ProductVideoController::class, 'destroy'])
-            ->name('videos.destroy');
+        Route::resource('videos', VideoController::class)->except(['show']);
+        Route::resource('sizes', SizeController::class)->except(['show']);
+        Route::resource('colors', ColorController::class)->except(['show']);
 
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');

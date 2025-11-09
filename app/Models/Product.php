@@ -58,9 +58,9 @@ class Product extends Model
         return $this->hasMany(ProductImage::class);
     }
 
-    public function videos(): HasMany
+    public function videos(): BelongsToMany
     {
-        return $this->hasMany(ProductVideo::class);
+        return $this->belongsToMany(Video::class, 'product_video_pivot', 'product_id', 'video_id');
     }
     public function relatedProducts(): BelongsToMany
     {

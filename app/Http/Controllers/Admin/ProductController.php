@@ -5,9 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Video;
+use App\Models\Size;
+use App\Models\Color;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str; // We'll use this to auto-generate slugs
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
@@ -16,10 +22,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        // Get all products, newest first.
-        // 'with('category')' is "eager loading" - it's fast!
         $products = Product::with(['category', 'admin'])->latest()->paginate(20);
-
         return view('admin.products.index', compact('products'));
     }
 
@@ -28,19 +31,15 @@ class ProductController extends Controller
      */
     public function create()
     {
-        // We need all categories to display in a dropdown
         $categories = Category::all();
-
-        // 1. Get the highest 'id' (auto-increment) from the products table.
+        $sizes = Size::orderBy('name')->get();
+        $colors = Color::orderBy('name')->get();
+        $allProducts = Product::select('id', 'name')->get(); 
+        $allVideos = Video::all();
+        
         $latestProduct = Product::orderBy('id', 'desc')->first();
-        
-        // 2. Determine the next ID
         $nextId = $latestProduct ? $latestProduct->id + 1 : 1;
-        
-        // 3. Format it as an 8-digit string (e.g., 00000001)
         $newProductId = str_pad($nextId, 8, '0', STR_PAD_LEFT);
-
-        // 4. (Safety Check) In case this ID was manually used, find the next available one
         while (Product::where('product_id', $newProductId)->exists()) {
             $nextId++;
             $newProductId = str_pad($nextId, 8, '0', STR_PAD_LEFT);
@@ -48,19 +47,33 @@ class ProductController extends Controller
 
         $product = new Product([
             'product_id' => $newProductId,
-            'is_visible' => true // Set default visibility
+            'is_visible' => true,
+            'is_for_men' => false,
+            'is_for_women' => false,
         ]);
+        
+        // Load an empty relationship for the create form
+        // (این کار باعث می‌شود $product->videos->pluck('id') در ویو خطا ندهد)
+        $product->load('videos', 'relatedProducts'); 
 
-
-        return view('admin.products.create', compact('categories', 'product'));
+        return view('admin.products.create', compact(
+            'categories', 
+            'product', 
+            'sizes', 
+            'colors',
+            'allProducts',
+            'allVideos'
+        ));
     }
 
     /**
      * Store a newly created resource in storage.
+     * --- اصلاح شده ---
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
+            // Product Details
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
@@ -69,20 +82,99 @@ class ProductController extends Controller
             'is_visible' => 'boolean',
             'is_for_men' => 'boolean',
             'is_for_women' => 'boolean',
+
+            // Variants Validation (بر اساس فرم شما)
+            'variants' => 'nullable|array',
+            'variants.*.size' => 'nullable|string|max:255',
+            'variants.*.color' => 'nullable|string|max:255',
+            'variants.*.price' => 'required_with:variants|integer|min:0',
+            'variants.*.discount_price' => 'nullable|integer|min:0|lt:variants.*.price',
+            'variants.*.buy_price' => 'nullable|integer|min:0',
+            'variants.*.stock' => 'required_with:variants|integer|min:0',
+            'variants.*.buy_source' => 'nullable|string|max:255',
+
+            // Media Validation
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            // (اعتبارسنجی فایل‌های ویدیویی حذف شد، چون دیگر مستقیماً آپلود نمی‌شوند)
+            // 'videos' => ... 
+            
+            'video_embeds' => 'nullable|array', 
+            'video_embeds.*' => 'nullable|string|regex:/<iframe.*<\/iframe>/i', 
+
+            'related_product_ids' => 'nullable|array',
+            'related_product_ids.*' => 'exists:products,id',
+
+            // --- FIX: Add validation for selected video IDs ---
+            'video_ids' => 'nullable|array',
+            'video_ids.*' => 'exists:videos,id',
+        ], [
+            'variants.*.discount_price.lt' => 'قیمت با تخفیf باید کمتر از قیمت اصلی باشد.',
+            'video_embeds.*.regex' => 'کد الصاقی (embed) معتبر نیست. باید شامل تگ <iframe> باشد.'
         ]);
         
-        // Add the slug
-        $validated['slug'] = Str::slug($request->name) . '-' . uniqid();
-
+        // --- آماده‌سازی داده‌ها ---
+        $validated['slug'] = empty($request->slug) ? Str::slug($request->name) . '-' . uniqid() : Str::slug($request->slug);
         $validated['admin_id'] = Auth::guard('admin')->id();
-        
-        // Handle the checkbox
         $validated['is_visible'] = $request->boolean('is_visible');
+        $validated['is_for_men'] = $request->boolean('is_for_men');
+        $validated['is_for_women'] = $request->boolean('is_for_women');
+        // --- پایان آماده‌سازی ---
 
-        Product::create($validated);
+        DB::beginTransaction();
+        try {
+            // 1. ایجاد محصول اصلی
+            $product = Product::create($validated);
 
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Product created successfully.');
+            // 2. ایجاد متغیرها
+            if ($request->has('variants')) {
+                foreach ($request->variants as $variantData) {
+                    $product->variants()->create($variantData);
+                }
+            }
+
+            // 3. ذخیره تصاویر
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $file) {
+                    $path = $file->store('products', 'public');
+                    $product->images()->create(['path' => $path, 'alt_text' => $product->name]);
+                }
+            }
+            
+            // 4. ذخیره ویدیوهای الصاقی (Embed)
+            // (این بخش را نگه داشتیم، اما می‌توانید آن را حذف کنید اگر دیگر لازم نیست)
+            if ($request->has('video_embeds')) {
+                foreach ($request->video_embeds as $embedCode) {
+                    if (!empty($embedCode)) {
+                        // This uses the old logic, you might want to remove this
+                        // and force users to use the Video Library
+                        $product->videos()->create([
+                            'embed_code' => $embedCode,
+                            'alt_text' => $product->name . ' (embed)',
+                            'type' => 'embed',
+                        ]);
+                    }
+                }
+            }
+        
+            // --- FIX: 5. ذخیره ویدیوهای مرتبط (از کتابخانه) ---
+            if ($request->has('video_ids')) {
+                $product->videos()->sync($request->video_ids);
+            }
+
+            // 6. ذخیره محصولات مرتبط
+            if ($request->has('related_product_ids')) {
+                $product->relatedProducts()->sync($request->related_product_ids);
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.products.edit', $product)->with('success', 'محصول با موفقیت ایجاد شد.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'خطا در ایجاد محصول: ' . $e->getMessage())->withInput();
+        }
     }
 
     /**
@@ -90,27 +182,24 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        // We need categories for the dropdown
         $categories = Category::all();
+        $sizes = Size::orderBy('name')->get();
+        $colors = Color::orderBy('name')->get();
         
-        // We also load the product's variants and images here
-        // We will use these in the *next* step, but we load them now.
-        $product->load('variants', 'images');
-        $sizes = $this->getSizeList();
-
-        // 1. Load the relationships we need for the edit page
         $product->load('variants', 'images', 'videos', 'relatedProducts'); 
         
-        // 2. Get all OTHER products for the search dropdown (only ID and name)
         $allProducts = Product::where('id', '!=', $product->id)
                                 ->select('id', 'name')
                                 ->get();
+
+        $allVideos = Video::all();
         
-        return view('admin.products.edit', compact('product', 'categories', 'sizes', 'allProducts'));
+        return view('admin.products.edit', compact('product', 'categories', 'sizes', 'colors', 'allProducts', 'allVideos'));
     }
 
     /**
      * Update the specified resource in storage.
+     * --- اصلاح شده ---
      */
     public function update(Request $request, Product $product)
     {
@@ -118,37 +207,46 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
-            // Make sure to ignore the current product's ID when checking for unique
-            'product_id' => 'nullable|string|max:100|unique:products,product_id,' . $product->id,
+            'product_id' => ['required', 'string', 'max:255', Rule::unique('products')->ignore($product->id)],
+            'slug' => ['nullable', 'string', 'max:255', Rule::unique('products')->ignore($product->id)],
             'boxing_type' => 'nullable|string|max:100',
             'is_visible' => 'boolean',
             'is_for_men' => 'boolean',
             'is_for_women' => 'boolean',
             'related_product_ids' => 'nullable|array',
-            'related_product_ids.*' => 'exists:products,id' // Must be valid product IDs
+            'related_product_ids.*' => 'exists:products,id',
+            
+            // --- FIX: Add validation for selected video IDs ---
+            'video_ids' => 'nullable|array',
+            'video_ids.*' => 'exists:videos,id'
         ]);
 
-        // If the name changed, update the slug
-        if ($request->name !== $product->name) {
-            $validated['slug'] = Str::slug($request->name) . '-' . $product->id;
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['name']) . '-' . $product->id;
         }
 
-        // Handle the checkbox
         $validated['is_visible'] = $request->boolean('is_visible');
+        $validated['is_for_men'] = $request->boolean('is_for_men');
+        $validated['is_for_women'] = $request->boolean('is_for_women');
 
         $product->update($validated);
 
-        // Sync the related products
-        // sync() automatically adds new ones, and removes old ones
         if ($request->has('related_product_ids')) {
             $product->relatedProducts()->sync($request->related_product_ids);
         } else {
-            // If no IDs are sent, remove all relationships
             $product->relatedProducts()->sync([]);
         }
 
+        // --- FIX: Add sync logic for videos ---
+        if ($request->has('video_ids')) {
+            $product->videos()->sync($request->video_ids);
+        } else {
+            $product->videos()->sync([]);
+        }
+        // --- End Fix ---
+
         return redirect()->route('admin.products.edit', $product)
-            ->with('success', 'Product updated successfully.');
+            ->with('success', 'محصول با موفقیت به‌روزرسانی شد.');
     }
 
     /**
@@ -156,19 +254,27 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        // This will also delete all associated variants and images
-        // because of the `onDelete('cascade')` in our migrations.
-        $product->delete();
+        $product->load('images', 'videos');
+
+        foreach ($product->images as $image) {
+            Storage::disk('public')->delete($image->path);
+        }
+        // We no longer delete videos, just detach them
+        // (unless they are 'upload' type and you want to delete the file)
+        
+        $product->delete(); // This should detach pivot table records
 
         return redirect()->route('admin.products.index')
-            ->with('success', 'Product deleted successfully.');
+            ->with('success', 'محصول (و تمام فایل‌های مرتبط) با موفقیت حذف شد.');
     }
 
+    /**
+     * Helper function to generate shoe size list.
+     */
     private function getSizeList(): array
     {
         $sizes = [];
         for ($i = 36.5; $i <= 47; $i += 0.5) {
-            // Convert to string to handle .0 and .5 correctly
             $sizes[] = (string)$i;
         }
         return $sizes;

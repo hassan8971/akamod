@@ -34,14 +34,23 @@
                             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
                         <option value="">انتخاب کنید...</option>
                         @foreach ($sizes as $size)
-                            <option value="{{ $size }}">{{ $size }}</option>
+                            <option value="{{ $size->name }}" @selected(old('size', $variant->size) == $size->name)>
+                                {{ $size->name }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
                 <div>
                     <label for="color" class="block text-sm font-medium text-gray-700 text-right">رنگ</label>
-                    <input type="text" name="color" id="color" value="{{ old('color', $variant->color) }}" 
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-right">
+                    <select name="color" id="color"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach ($colors as $color)
+                            <option value="{{ $color->name }}" @selected(old('color', $variant->color) == $color->name)>
+                                {{ $color->name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <!-- We divide by 100 to show dollars again -->

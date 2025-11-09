@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('packaging_options', function (Blueprint $table) {
+        Schema::create('colors', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // e.g., "بسته‌بندی هدیه"
-            $table->string('image_path')->nullable();
-            $table->unsignedInteger('price')->default(0); // Price in Toman
-            $table->boolean('is_active')->default(true); // To toggle visibility
+            $table->string('name')->unique(); // e.g., "قرمز تیره"
+            $table->string('hex_code', 7)->nullable()->unique(); // e.g., "#FF0000"
             $table->timestamps();
         });
     }
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('packaging_options');
+        Schema::dropIfExists('colors');
     }
 };

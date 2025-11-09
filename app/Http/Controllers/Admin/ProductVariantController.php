@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
+use App\Models\Size;
+use App\Models\Color;
 
 class ProductVariantController extends Controller
 {
@@ -43,10 +45,11 @@ class ProductVariantController extends Controller
         // We need to load the product this variant belongs to
         // This is for the "Back" link
         $product = $variant->product; 
-        $sizes = $this->getSizeList();
+        $sizes = Size::orderBy('name')->get();
+        $colors = Color::orderBy('name')->get();
         
         
-        return view('admin.variants.edit', compact('variant', 'product', 'sizes'));
+        return view('admin.variants.edit', compact('variant', 'product', 'sizes', 'colors'));
     }
 
     /**

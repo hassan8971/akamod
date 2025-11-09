@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\PackagingOption;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PackagingOptionController extends Controller
 {
@@ -39,14 +40,23 @@ class PackagingOptionController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|integer|min:0',
             'is_active' => 'nullable|boolean', // Handles 'on' or missing
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        // Use $request->boolean('is_active') to correctly handle checkbox
-        PackagingOption::create([
+        $data = [
             'name' => $validated['name'],
             'price' => $validated['price'],
             'is_active' => $request->boolean('is_active'),
-        ]);
+        ];
+
+        // --- مدیریت آپلود تصویر ---
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('packaging', 'public');
+            $data['image_path'] = $path;
+        }
+        // --- پایان بخش جدید ---
+
+        PackagingOption::create($data);
 
         return redirect()->route('admin.packaging-options.index')
             ->with('success', 'گزینه بسته‌بندی جدید با موفقیت ایجاد شد.');
@@ -72,13 +82,26 @@ class PackagingOptionController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|integer|min:0',
             'is_active' => 'nullable|boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $packagingOption->update([
+        $data = [
             'name' => $validated['name'],
             'price' => $validated['price'],
             'is_active' => $request->boolean('is_active'),
-        ]);
+        ];
+
+        if ($request->hasFile('image')) {
+            // ۱. حذف تصویر قدیمی (اگر وجود داشت)
+            if ($packagingOption->image_path) {
+                Storage::disk('public')->delete($packagingOption->image_path);
+            }
+            // ۲. ذخیره تصویر جدید
+            $path = $request->file('image')->store('packaging', 'public');
+            $data['image_path'] = $path;
+        }
+
+        $packagingOption->update($data);
 
         return redirect()->route('admin.packaging-options.index')
             ->with('success', 'گزینه بسته‌بندی با موفقیت به‌روزرسانی شد.');
@@ -91,6 +114,9 @@ class PackagingOptionController extends Controller
     public function destroy(PackagingOption $packagingOption)
     {
         try {
+            if ($packagingOption->image_path) {
+                Storage::disk('public')->delete($packagingOption->image_path);
+            }
             // Delete the option
             $packagingOption->delete();
             return redirect()->route('admin.packaging-options.index')

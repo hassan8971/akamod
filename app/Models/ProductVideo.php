@@ -18,7 +18,9 @@ class ProductVideo extends Model
      */
     protected $fillable = [
         'product_id',
+        'type',
         'path',
+        'embed_code',
         'alt_text',
         'order',
     ];

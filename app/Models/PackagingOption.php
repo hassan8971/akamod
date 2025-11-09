@@ -11,6 +11,7 @@ class PackagingOption extends Model
 
     protected $fillable = [
         'name',
+        'image_path',
         'price',
         'is_active',
     ];

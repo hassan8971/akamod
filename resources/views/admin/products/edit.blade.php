@@ -205,14 +205,21 @@
                             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
                         <option value="">انتخاب کنید...</option>
                         @foreach ($sizes as $size)
-                            <option value="{{ $size }}">{{ $size }}</option>
+                            <option value="{{ $size->name }}">{{ $size->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
                     <label for="variant_color" class="block text-sm font-medium text-gray-700">رنگ</label>
-                    <input type="text" name="color" id="variant_color" placeholder="مثال: قرمز"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    <select name="color" id="color"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                <option value="">انتخاب کنید...</option>
+                @foreach ($colors as $color)
+                    <option value="{{ $color->name }}" @selected(old('color', $variant->color) == $color->name)>
+                        {{ $color->name }}
+                    </option>
+                @endforeach
+            </select>
                 </div>
                 <div>
                     <label for="variant_price" class="block text-sm font-medium text-gray-700">قیمت (تومان)</label>
@@ -221,12 +228,12 @@
                 </div>
                 <div>
                     <label for="discount_price" class="block text-sm font-medium text-gray-700">قیمت با تخفیف (تومان)</label>
-                    <input type="number" name="discount_price" value="{{ old('discount_price', $variant->discount_price) }}" id="discount_price" placeholder="مثال: 50000"
+                    <input type="number" name="discount_price" value="{{ old('discount_price') }}" id="discount_price" placeholder="مثال: 50000"
                            step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
                 </div>
                 <div>
                     <label for="buy_price" class="block text-sm font-medium text-gray-700">قیمت خرید</label>
-                    <input type="number" name="buy_price" value="{{ old('buy_price', $variant->buy_price) }}" id="buy_price" placeholder="مثال: 50000"
+                    <input type="number" name="buy_price" value="{{ old('buy_price') }}" id="buy_price" placeholder="مثال: 50000"
                            step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
                 </div>
                 <div>
@@ -301,61 +308,94 @@
         </form>
     </div>
 
-    <!-- START: Manage Videos (NEW SECTION) -->
-    <div class="bg-white shadow-md rounded-lg p-6" dir="rtl">
-        <h2 class="text-xl font-semibold mb-4">مدیریت ویدیوها</h2>
-        <!-- List Existing Videos -->
-        <div class="mb-6">
-            <h3 class="text-lg font-medium mb-2">ویدیوهای موجود</h3>
-            
-            <!-- FIXED: Check for null before calling isEmpty() -->
-            @if (is_null($product->videos) || $product->videos->isEmpty())
-                <p class="text-gray-500">هنوز ویدیویی آپلود نشده است.</p>
-            @else
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    @foreach ($product->videos as $video)
-                        <div class="relative border rounded-lg overflow-hidden shadow bg-gray-900">
-                            <video controls class="w-full h-32 object-cover">
-                                <source src="{{ Storage::url($video->path) }}" type="video/mp4">
-                                مرورگر شما از تگ ویدیو پشتیبانی نمی‌کند.
-                            </video>
-                            <div class="absolute top-1 left-1">
-                                <form action="{{ route('admin.videos.destroy', $video) }}" method="POST" onsubmit="return confirm('آیا از حذف این ویدیو مطمئن هستید؟');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="p-1 bg-red-600 text-white rounded-full text-xs leading-none hover:bg-red-700">
-                                        &times;
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-        <!-- Add New Videos Form -->
-        <hr class="my-6">
-        <h3 class="text-lg font-medium mb-2">آپلود ویدیوهای جدید</h3>
-        <form action="{{ route('admin.products.videos.store', $product) }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            <div>
-                <label for="videos" class="block text-sm font-medium text-gray-700">انتخاب ویدیو (mp4, mov, ...)</label>
-                <input type="file" name="videos[]" id="videos" multiple accept="video/*"
-                       class="mt-1 block w-full text-sm text-gray-500
-                              file:mr-4 file:py-2 file:px-4 file:ml-4
-                              file:rounded-full file:border-0
-                              file:text-sm file:font-semibold
-                              file:bg-purple-50 file:text-purple-700
-                              hover:file:bg-purple-100" required>
-            </div>
-            <div class="flex justify-end mt-4">
-                <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                    آپلود ویدیوها
+    <div class="bg-white shadow-md rounded-lg p-6" 
+     dir="rtl"
+     x-data="{
+         isOpen: false,
+         searchQuery: '',
+         allVideos: {{ $allVideos ?? '[]' }},
+         selectedVideos: {{ $product->videos->pluck('id') ?? '[]' }},
+         formId: 'product-update-form',
+         
+         get filteredVideos() {
+             if (this.searchQuery === '') {
+                 return this.allVideos.filter(v => !this.selectedVideos.includes(v.id)).slice(0, 50);
+             }
+             return this.allVideos.filter(v => 
+                 v.name.toLowerCase().includes(this.searchQuery.toLowerCase()) && 
+                 !this.selectedVideos.includes(v.id)
+             ).slice(0, 50);
+         },
+         
+         addVideo(videoId) {
+             if (!this.selectedVideos.includes(videoId)) {
+                 this.selectedVideos.push(videoId);
+             }
+             this.searchQuery = '';
+             this.isOpen = false;
+         },
+         
+         removeVideo(videoId) {
+             this.selectedVideos = this.selectedVideos.filter(id => id !== videoId);
+         },
+         
+         getVideoName(id) {
+             const video = this.allVideos.find(v => v.id === id);
+             return video ? (video.name || video.alt_text || 'ویدیو بدون نام') : 'ویدیو یافت نشد';
+         }
+     }">
+    
+    <h2 class="text-xl font-semibold mb-4">ویدیوهای محصول</h2>
+    <p class="text-sm text-gray-500 mb-4">ویدیوها را از کتابخانه انتخاب کنید. (ابتدا آن‌ها را در بخش "کتابخانه ویدیو" آپلود کنید)</p>
+    
+    <template x-for="videoId in selectedVideos" :key="videoId">
+        <input type="hidden" name="video_ids[]" :value="videoId" :form="formId">
+    </template>
+    
+    <div class="flex flex-wrap gap-2 mb-4">
+        <template x-for="videoId in selectedVideos" :key="videoId">
+            <span class="flex items-center bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full">
+                <span x-text="getVideoName(videoId)"></span>
+                <button type="button" @click="removeVideo(videoId)" class="mr-2 text-purple-600 hover:text-purple-800">
+                    &times;
                 </button>
-            </div>
-        </form>
+            </span>
+        </template>
+        <p x-show="selectedVideos.length === 0" class="text-sm text-gray-500">
+            هنوز ویدیویی برای این محصول انتخاب نشده است.
+        </p>
     </div>
-    <!-- END: Manage Videos -->
+
+    <div class="relative">
+        <label for="video_search" class="block text-sm font-medium text-gray-700">افزودن ویدیو از کتابخانه</label>
+        <input type="text"
+               id="video_search"
+               x-model="searchQuery"
+               @focus="isOpen = true"
+               @click.away="isOpen = false"
+               placeholder="جستجوی نام ویدیو..."
+               autocomplete="off"
+               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+        
+        <div x-show="isOpen" 
+             x-transition
+             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+             style="display: none;">
+            
+            <ul class="py-1">
+                <template x-for="video in filteredVideos" :key="video.id">
+                    <li @click="addVideo(video.id)"
+                        class="text-gray-900 cursor-pointer select-none relative py-2 px-4 hover:bg-gray-100">
+                        <span x-text="video.name"></span>
+                    </li>
+                </template>
+                <li x-show="filteredVideos.length === 0 && searchQuery !== ''" class="py-2 px-4 text-gray-500">
+                    ویدیویی با این نام یافت نشد.
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
 
 
     
