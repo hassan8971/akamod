@@ -2,6 +2,8 @@
 @section('title', 'افزودن کد تخفیف جدید')
 
 @section('content')
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
 <div dir="rtl">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold">افزودن کد تخفیف جدید</h1>
@@ -10,16 +12,39 @@
         </a>
     </div>
 
-    <form action="{{ route('admin.discounts.store') }}" method="POST">
+    <form action="{{ route('admin.discounts.store') }}" method="POST" 
+          x-data="{ generation_mode: '{{ old('generation_mode', 'manual') }}' }">
         @csrf
+
         <div class="bg-white shadow-md rounded-lg p-6 space-y-6">
             
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">حالت ایجاد کد</label>
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <label class="flex items-center">
+                        <input type="radio" name="generation_mode" value="manual" x-model="generation_mode" class="ml-2">
+                        <span>ایجاد کد تکی (دستی)</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="generation_mode" value="batch" x-model="generation_mode" class="ml-2">
+                        <span>ایجاد کدهای گروهی (رندوم)</span>
+                    </label>
+                </div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
+                
+                <div x-show="generation_mode === 'manual'" x-transition>
                     <label for="code" class="block text-sm font-medium text-gray-700">کد تخفیف</label>
-                    <input type="text" name="code" id="code" value="{{ old('code', $discount->code) }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="BAHAR20" required dir="ltr">
+                    <input type="text" name="code" id="code" value="{{ old('code', $discount->code) }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="BAHAR20" dir="ltr">
                     @error('code') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                 </div>
+
+                <div x-show="generation_mode === 'batch'" x-transition style="display: none;">
+                    <label for="quantity" class="block text-sm font-medium text-gray-700">تعداد کد جهت ساخت</label>
+                    <input type="number" name="quantity" id="quantity" value="{{ old('quantity', 10) }}" min="1" max="100" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="مثلا: 50" dir="ltr">
+                    @error('quantity') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+
                 <div>
                     <label for="type" class="block text-sm font-medium text-gray-700">نوع تخفیف</label>
                     <select name="type" id="type" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">

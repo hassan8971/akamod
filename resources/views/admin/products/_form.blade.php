@@ -53,6 +53,16 @@
                    dir="ltr">
         </div>
 
+        <div>
+            <label for="invoice_number" class="block text-sm font-medium text-gray-700">شماره فاکتور (اختیاری)</label>
+            <input type="text" 
+                name="invoice_number" 
+                id="invoice_number" 
+                value="{{ old('invoice_number', $product->invoice_number ?? '') }}"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                placeholder="مثال: F-1403-25">
+        </div>
+
         <div class="md:col-span-1 space-y-6">
         <div class="bg-white shadow rounded-lg p-4">
             <label class="block text-sm font-medium text-gray-700">جنسیت</label>

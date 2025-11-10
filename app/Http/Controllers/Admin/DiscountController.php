@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Discount;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class DiscountController extends Controller
 {
@@ -39,8 +41,17 @@ class DiscountController extends Controller
      */
     public function store(Request $request)
     {
+        // اعتبار سنجی داینامیک بر اساس حالت انتخابی
         $validated = $request->validate([
-            'code' => 'required|string|max:255|unique:discounts,code',
+            'generation_mode' => 'required|in:manual,batch',
+            
+            // اگر حالت دستی بود، کد الزامی و یونیک است
+            'code' => 'required_if:generation_mode,manual|nullable|string|max:255|unique:discounts,code',
+            
+            // اگر حالت گروهی بود، تعداد الزامی و عددی بین 1 تا 100 است
+            'quantity' => 'required_if:generation_mode,batch|nullable|integer|min:1|max:100', // سقف 100 تایی برای جلوگیری از فشار
+
+            // فیلدهای مشترک
             'type' => 'required|string|in:percent,fixed',
             'value' => 'required|integer|min:0',
             'starts_at' => 'nullable|date',
@@ -48,15 +59,52 @@ class DiscountController extends Controller
             'usage_limit' => 'nullable|integer|min:0',
             'min_purchase' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
+        ], [
+            'code.required_if' => 'فیلد کد تخفیف در حالت دستی الزامی است.',
+            'quantity.required_if' => 'فیلد تعداد در حالت گروهی الزامی است.',
+            'quantity.max' => 'حداکثر تعداد مجاز برای ساخت گروهی 100 عدد است.',
         ]);
 
-        $validated['is_active'] = $request->boolean('is_active');
-        $validated['min_purchase'] = $validated['min_purchase'] ?? 0;
+        // آماده‌سازی داده‌های مشترک
+        $commonData = [
+            'type' => $validated['type'],
+            'value' => $validated['value'],
+            'starts_at' => $validated['starts_at'],
+            'expires_at' => $validated['expires_at'],
+            'usage_limit' => $validated['usage_limit'],
+            'min_purchase' => $validated['min_purchase'] ?? 0,
+            'is_active' => $request->boolean('is_active'),
+        ];
+        
+        $message = '';
 
-        Discount::create($validated);
+        // --- شروع منطق اصلی ---
+        if ($validated['generation_mode'] === 'manual') {
+            // حالت دستی: ایجاد یک کد
+            $commonData['code'] = $validated['code'];
+            Discount::create($commonData);
+            $message = 'کد تخفیف با موفقیت ایجاد شد.';
+
+        } else {
+            // حالت گروهی: ایجاد چندین کد رندوم
+            $count = $validated['quantity'];
+            
+            DB::beginTransaction();
+            try {
+                for ($i = 0; $i < $count; $i++) {
+                    $commonData['code'] = $this->generateUniqueCode(); // ساخت کد رندوم
+                    Discount::create($commonData);
+                }
+                DB::commit();
+                $message = "تعداد {$count} کد تخفیf رندوم با موفقیت ایجاد شد.";
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'خطا در ایجاد کدهای گروهی: ' . $e->getMessage())->withInput();
+            }
+        }
 
         return redirect()->route('admin.discounts.index')
-            ->with('success', 'کد تخفیف با موفقیت ایجاد شد.');
+            ->with('success', $message);
     }
 
     /**
@@ -115,5 +163,15 @@ class DiscountController extends Controller
             return redirect()->route('admin.discounts.index')
                 ->with('error', 'امکان حذف این کد وجود ندارد.');
         }
+    }
+
+    private function generateUniqueCode(): string
+    {
+        do {
+            // ترکیب 8 کاراکتر از حروف بزرگ (بدون O و I) و اعداد (بدون 0 و 1) برای خوانایی
+            $code = Str::upper(Str::random(8)); 
+        } while (Discount::where('code', $code)->exists()); // چک کردن تکراری نبودن
+
+        return $code;
     }
 }

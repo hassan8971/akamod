@@ -18,6 +18,7 @@ class Product extends Model
         'slug',
         'description',
         'product_id', // Your internal SKU
+        'invoice_number',
         'boxing_type',
         'is_visible',
         'is_for_men',
@@ -61,6 +62,10 @@ class Product extends Model
     public function videos(): BelongsToMany
     {
         return $this->belongsToMany(Video::class, 'product_video_pivot', 'product_id', 'video_id');
+    }
+    public function packagingOptions()
+    {
+        return $this->belongsToMany(PackagingOption::class, 'product_packaging_option_pivot');
     }
     public function relatedProducts(): BelongsToMany
     {

@@ -215,7 +215,7 @@
                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
                 <option value="">انتخاب کنید...</option>
                 @foreach ($colors as $color)
-                    <option value="{{ $color->name }}" @selected(old('color', $variant->color) == $color->name)>
+                    <option value="{{ $color->name }}" @selected(old('color') == $color->name)>
                         {{ $color->name }}
                     </option>
                 @endforeach
@@ -308,6 +308,8 @@
         </form>
     </div>
 
+    <!-- Add videos Start -->
+
     <div class="bg-white shadow-md rounded-lg p-6" 
      dir="rtl"
      x-data="{
@@ -397,6 +399,103 @@
     </div>
 </div>
 
+<!-- Add Videos End -->
+
+<!-- Add Packaging Options Start -->
+
+<div class="bg-white shadow-md rounded-lg p-6 mt-7" 
+     dir="rtl"
+     x-data="{
+         isOpen: false,
+         searchQuery: '',
+         allPackagingOptions: {{ $allPackagingOptions ?? '[]' }},
+         
+         // --- تفاوت اصلی: پر کردن داده‌های قبلی ---
+         selectedPackagingOptions: {{ $product->packagingOptions->pluck('id') ?? '[]' }}, 
+         
+         formId: 'product-update-form',
+
+         get filteredPackagingOptions() {
+             if (this.searchQuery === '') {
+                 return this.allPackagingOptions.filter(p => !this.selectedPackagingOptions.includes(p.id)).slice(0, 50);
+             }
+             return this.allPackagingOptions.filter(p => 
+                 p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) && 
+                 !this.selectedPackagingOptions.includes(p.id)
+             ).slice(0, 50);
+         },
+         
+         addPackagingOption(optionId) {
+             if (!this.selectedPackagingOptions.includes(optionId)) {
+                 this.selectedPackagingOptions.push(optionId);
+             }
+             this.searchQuery = '';
+             this.isOpen = false;
+         },
+         
+         removePackagingOption(optionId) {
+             this.selectedPackagingOptions = this.selectedPackagingOptions.filter(id => id !== optionId);
+         },
+         
+         getPackagingOptionName(id) {
+             const option = this.allPackagingOptions.find(p => p.id === id);
+             return option ? option.name : 'بسته‌بندی یافت نشد';
+         }
+     }">
+    
+    <h2 class="text-xl font-semibold mb-4">انواع بسته‌بندی</h2>
+    <p class="text-sm text-gray-500 mb-4">انواع بسته‌بندی قابل انتخاب برای این محصول را مشخص کنید.</p>
+    
+    <template x-for="optionId in selectedPackagingOptions" :key="optionId">
+        <input type="hidden" name="packaging_option_ids[]" :value="optionId" :form="formId">
+    </template>
+    
+    <div class="flex flex-wrap gap-2 mb-4">
+        <template x-for="optionId in selectedPackagingOptions" :key="optionId">
+            <span class="flex items-center bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
+                <span x-text="getPackagingOptionName(optionId)"></span>
+                <button type="button" @click="removePackagingOption(optionId)" class="mr-2 text-green-600 hover:text-green-800">
+                    &times;
+                </button>
+            </span>
+        </template>
+        <p x-show="selectedPackagingOptions.length === 0" class="text-sm text-gray-500">
+            هنوز بسته‌بندی برای این محصول انتخاب نشده است.
+        </p>
+    </div>
+
+    <div class="relative">
+        <label for="packaging_search" class="block text-sm font-medium text-gray-700">افزودن بسته‌بندی</label>
+        <input type="text"
+               id="packaging_search"
+               x-model="searchQuery"
+               @focus="isOpen = true"
+               @click.away="isOpen = false"
+               placeholder="جستجوی نام بسته‌بندی..."
+               autocomplete="off"
+               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+        
+        <div x-show="isOpen" 
+             x-transition
+             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+             style="display: none;">
+            
+            <ul class="py-1">
+                <template x-for="option in filteredPackagingOptions" :key="option.id">
+                    <li @click="addPackagingOption(option.id)"
+                        class="text-gray-900 cursor-pointer select-none relative py-2 px-4 hover:bg-gray-100">
+                        <span x-text="option.name"></span>
+                    </li>
+                </template>
+                <li x-show="filteredPackagingOptions.length === 0 && searchQuery !== ''" class="py-2 px-4 text-gray-500">
+                    بسته‌بندی با این نام یافت نشد.
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Add Packaging Options End -->
 
     
     @endsection

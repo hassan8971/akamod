@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB; // For database transactions
 use App\Models\PackagingOption;
 use App\Models\Discount;
 use Darryldecode\Cart\CartCondition;
+use App\Models\ProductVariant;
 
 class CheckoutController extends Controller
 {
@@ -38,7 +39,39 @@ class CheckoutController extends Controller
         // --- FIX: Pass 'subtotal' to the view for Alpine.js ---
         $subtotal = Cart::getSubTotal(); // Get subtotal as Toman integer
 
-        $packagingOptions = PackagingOption::where('is_active', true)->orderBy('price')->get();
+        // 1. ابتدا ID متغیرها (variants) را از سبد خرید می‌گیریم
+        // (بر اساس متد store، می‌دانیم که $item->id همان variant_id است)
+        $cartVariantIds = $cartItems->pluck('id')->toArray();
+
+        // 2. حالا ID محصولات اصلی (والد) را از روی ID متغیرها پیدا می‌کنیم
+        // ** این بخش حیاتی است و فرض می‌کند مدل ProductVariant وجود دارد **
+        $cartProductIds = ProductVariant::whereIn('id', $cartVariantIds)
+                                    ->pluck('product_id') // فقط ستون product_id را بگیر
+                                    ->unique()           // ID های تکراری را حذف کن
+                                    ->toArray();
+
+
+
+        // 3. بسته‌بندی‌هایی را واکشی می‌کنیم که:
+        //    الف) به یکی از محصولات داخل سبد لینک شده باشند
+        //    ب) یا رایگان (پیش‌فرض) باشند
+        
+        $packagingOptions = PackagingOption::where('is_active', true)
+            ->where(function ($query) use ($cartProductIds) {
+                
+                // شرط الف: اگر ID محصولی در سبد بود
+                if (!empty($cartProductIds)) {
+                    $query->whereHas('products', function ($subQuery) use ($cartProductIds) {
+                        $subQuery->whereIn('products.id', $cartProductIds);
+                    });
+                }
+                
+                // شرط ب: گزینه‌های رایگان (مثل "استاندارد") همیشه نمایش داده شوند
+                $query->orWhere('price', 0); 
+            })
+            ->orderBy('price') // مرتب‌سازی بر اساس قیمت
+            ->distinct()      // حذف گزینه‌های تکراری (اگر "استاندارد" هم لینک شده بود و هم رایگان)
+            ->get();
 
         $discountAmount = 0;
         $discountCode = null;

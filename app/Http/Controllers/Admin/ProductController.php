@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Video;
 use App\Models\Size;
 use App\Models\Color;
+use App\Models\PackagingOption;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +37,7 @@ class ProductController extends Controller
         $colors = Color::orderBy('name')->get();
         $allProducts = Product::select('id', 'name')->get(); 
         $allVideos = Video::all();
+        $allPackagingOptions = PackagingOption::where('is_active', true)->get();
         
         $latestProduct = Product::orderBy('id', 'desc')->first();
         $nextId = $latestProduct ? $latestProduct->id + 1 : 1;
@@ -62,7 +64,8 @@ class ProductController extends Controller
             'sizes', 
             'colors',
             'allProducts',
-            'allVideos'
+            'allVideos',
+            'allPackagingOptions'
         ));
     }
 
@@ -78,6 +81,7 @@ class ProductController extends Controller
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
             'product_id' => 'required|string|max:255|unique:products,product_id',
+            'invoice_number' => 'nullable|string|max:255|unique:products,invoice_number',
             'boxing_type' => 'nullable|string|max:100',
             'is_visible' => 'boolean',
             'is_for_men' => 'boolean',
@@ -108,6 +112,9 @@ class ProductController extends Controller
             // --- FIX: Add validation for selected video IDs ---
             'video_ids' => 'nullable|array',
             'video_ids.*' => 'exists:videos,id',
+
+            'packaging_option_ids' => 'nullable|array',
+            'packaging_option_ids.*' => 'exists:packaging_options,id',
         ], [
             'variants.*.discount_price.lt' => 'قیمت با تخفیf باید کمتر از قیمت اصلی باشد.',
             'video_embeds.*.regex' => 'کد الصاقی (embed) معتبر نیست. باید شامل تگ <iframe> باشد.'
@@ -167,6 +174,11 @@ class ProductController extends Controller
                 $product->relatedProducts()->sync($request->related_product_ids);
             }
 
+            // 7. ذخیره بسته‌بندی‌های مرتبط (این بلاک را اضافه کنید)
+            if ($request->has('packaging_option_ids')) {
+                $product->packagingOptions()->sync($request->packaging_option_ids);
+            }
+
             DB::commit();
 
             return redirect()->route('admin.products.edit', $product)->with('success', 'محصول با موفقیت ایجاد شد.');
@@ -193,8 +205,9 @@ class ProductController extends Controller
                                 ->get();
 
         $allVideos = Video::all();
+        $allPackagingOptions = PackagingOption::where('is_active', true)->get();
         
-        return view('admin.products.edit', compact('product', 'categories', 'sizes', 'colors', 'allProducts', 'allVideos'));
+        return view('admin.products.edit', compact('product', 'categories', 'sizes', 'colors', 'allProducts', 'allVideos', 'allPackagingOptions'));
     }
 
     /**
@@ -208,6 +221,14 @@ class ProductController extends Controller
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
             'product_id' => ['required', 'string', 'max:255', Rule::unique('products')->ignore($product->id)],
+            'invoice_number' => [
+                'nullable',
+                'string',
+                'max:255',
+                // ستون invoice_number را چک کن
+                // و ردیفی که id آن برابر $product->id است را نادیده بگیر
+                Rule::unique('products', 'invoice_number')->ignore($product->id)
+            ],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('products')->ignore($product->id)],
             'boxing_type' => 'nullable|string|max:100',
             'is_visible' => 'boolean',
@@ -218,7 +239,10 @@ class ProductController extends Controller
             
             // --- FIX: Add validation for selected video IDs ---
             'video_ids' => 'nullable|array',
-            'video_ids.*' => 'exists:videos,id'
+            'video_ids.*' => 'exists:videos,id',
+            'packaging_option_ids' => 'nullable|array',
+            'packaging_option_ids.*' => 'exists:packaging_options,id'
+
         ]);
 
         if (empty($validated['slug'])) {
@@ -237,13 +261,19 @@ class ProductController extends Controller
             $product->relatedProducts()->sync([]);
         }
 
-        // --- FIX: Add sync logic for videos ---
+        // --- Add sync logic for videos ---
         if ($request->has('video_ids')) {
             $product->videos()->sync($request->video_ids);
         } else {
             $product->videos()->sync([]);
         }
-        // --- End Fix ---
+
+        if ($request->has('packaging_option_ids')) {
+            $product->packagingOptions()->sync($request->packaging_option_ids);
+        } else {
+            $product->packagingOptions()->sync([]);
+        }
+        
 
         return redirect()->route('admin.products.edit', $product)
             ->with('success', 'محصول با موفقیت به‌روزرسانی شد.');
