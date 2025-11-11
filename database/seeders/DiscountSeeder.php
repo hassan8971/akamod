@@ -17,6 +17,7 @@ class DiscountSeeder extends Seeder
         Discount::firstOrCreate(
             ['code' => 'BAHAR'],
             [
+                'name' => 'تخفیf بهاره (۱۰ درصد)',
                 'type' => 'percent',
                 'value' => 10, // 10%
                 'min_purchase' => 100000, // حداقل خرید ۱۰۰ هزار تومان
@@ -28,6 +29,7 @@ class DiscountSeeder extends Seeder
         Discount::firstOrCreate(
             ['code' => 'HEZAR'],
             [
+                'name' => 'تخفیf ۵۰ هزار تومانی',
                 'type' => 'fixed',
                 'value' => 50000, // ۵۰ هزار تومان ثابت
                 'min_purchase' => 500000, // حداقل خرید ۵۰۰ هزار تومان

@@ -19,7 +19,6 @@ class Product extends Model
         'description',
         'product_id', // Your internal SKU
         'invoice_number',
-        'boxing_type',
         'is_visible',
         'is_for_men',
         'is_for_women',

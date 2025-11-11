@@ -25,6 +25,8 @@ class ProductVariantFactory extends Factory
             ? $price - ($this->faker->numberBetween(10, 30) * 1000) 
             : null;
 
+        $buySourceIds = BuySource::pluck('id');
+
         return [
             // product_id will be set by the ProductSeeder
             'size' => $this->faker->randomElement(['Small', 'Medium', 'Large', '40', '41', '42']),
@@ -33,7 +35,7 @@ class ProductVariantFactory extends Factory
             'discount_price' => $salePrice,
             'buy_price' => $this->faker->numberBetween(100000, 1000000),
             'stock' => $this->faker->numberBetween(0, 100),
-            'buy_source' => 'someone'
+            'buy_source_id' => $buySourceIds->isNotEmpty() ? $buySourceIds->random() : null,
         ];
     }
 }

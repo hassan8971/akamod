@@ -171,7 +171,9 @@
                                 <td class="px-4 py-3 border-b border-gray-200">{{ number_format($variant->discount_price) }}</td>
                                 <td class="px-4 py-3 border-b border-gray-200">{{ number_format($variant->buy_price) }}</td>
                                 <td class="px-4 py-3 border-b border-gray-200">{{ $variant->stock }}</td>
-                                <td class="px-4 py-3 border-b border-gray-200">{{ $variant->buy_source }}</td>
+                                <td class="px-4 py-3 border-b border-gray-200">
+                                    {{ $variant->buySource->name ?? '---' }}
+                                </td>
                                 <td class="px-4 py-3 border-b border-gray-200 text-left">
                                     <a href="{{ route('admin.variants.edit', $variant) }}" class="text-blue-600 hover:text-blue-900">ویرایش</a>
                                     <form action="{{ route('admin.variants.destroy', $variant) }}" method="POST" class="inline-block mr-4" onsubmit="return confirm('آیا از حذف این متغیر مطمئن هستید؟');">
@@ -230,12 +232,22 @@
                     <label for="discount_price" class="block text-sm font-medium text-gray-700">قیمت با تخفیف (تومان)</label>
                     <input type="number" name="discount_price" value="{{ old('discount_price') }}" id="discount_price" placeholder="مثال: 50000"
                            step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
-                </div>
+                        @if(isset($avg_sale_price) && $avg_sale_price > 0)
+                        <p class="mt-1 text-xs text-red-600">
+                            (میانگین فروش: {{ number_format($avg_sale_price) }} تومان)
+                        </p>
+                        @endif
+                        </div>
                 <div>
                     <label for="buy_price" class="block text-sm font-medium text-gray-700">قیمت خرید</label>
                     <input type="number" name="buy_price" value="{{ old('buy_price') }}" id="buy_price" placeholder="مثال: 50000"
                            step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
-                </div>
+                    @if(isset($avg_buy_price) && $avg_buy_price > 0)
+                        <p class="mt-1 text-xs text-red-600">
+                            (میانگین خرید: {{ number_format($avg_buy_price) }} تومان)
+                        </p>
+                    @endif
+                    </div>
                 <div>
                     <label for="variant_stock" class="block text-sm font-medium text-gray-700">موجودی انبار</label>
                     <input type="number" name="stock" id="variant_stock" placeholder="مثال: 100"
@@ -243,8 +255,13 @@
                 </div>
                 <div>
                     <label for="buy_source" class="block text-sm font-medium text-gray-700">سورس خرید</label>
-                    <input type="text" name="buy_source" id="buy_source"
-                           min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    <select name="buy_source_id" id="buy_source"
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach ($buySources as $source)
+                            <option value="{{ $source->id }}">{{ $source->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
             <div class="flex justify-end mt-4">

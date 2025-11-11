@@ -43,6 +43,7 @@ class DiscountController extends Controller
     {
         // اعتبار سنجی داینامیک بر اساس حالت انتخابی
         $validated = $request->validate([
+            'name' => 'required|string|max:255',
             'generation_mode' => 'required|in:manual,batch',
             
             // اگر حالت دستی بود، کد الزامی و یونیک است
@@ -67,6 +68,7 @@ class DiscountController extends Controller
 
         // آماده‌سازی داده‌های مشترک
         $commonData = [
+            'name' => $validated['name'],
             'type' => $validated['type'],
             'value' => $validated['value'],
             'starts_at' => $validated['starts_at'],
@@ -123,6 +125,7 @@ class DiscountController extends Controller
     public function update(Request $request, Discount $discount)
     {
         $validated = $request->validate([
+            'name' => 'required|string|max:255',
             'code' => [
                 'required',
                 'string',

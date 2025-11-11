@@ -21,7 +21,10 @@ return new class extends Migration
             $table->unsignedInteger('discount_price')->nullable();
             $table->unsignedInteger('buy_price')->nullable();
             $table->unsignedInteger('stock')->default(0); // Stock quantity
-            $table->string('buy_source')->nullable(); // Stock quantity
+            $table->foreignId('buy_source_id')
+                  ->nullable()
+                  ->constrained('buy_sources') // Link to 'buy_sources' table
+                  ->onDelete('set null'); // If source is deleted, set this to NULL
             
 
             $table->timestamps();

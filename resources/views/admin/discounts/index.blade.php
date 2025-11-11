@@ -25,6 +25,7 @@
         <table class="min-w-full leading-normal">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 text-right text-xs font-semibold uppercase">نام</th>
                     <th class="px-5 py-3 border-b-2 border-gray-200 text-right text-xs font-semibold uppercase">کد</th>
                     <th class="px-5 py-3 border-b-2 border-gray-200 text-right text-xs font-semibold uppercase">نوع</th>
                     <th class="px-5 py-3 border-b-2 border-gray-200 text-right text-xs font-semibold uppercase">مقدار</th>
@@ -36,6 +37,9 @@
             <tbody>
                 @forelse ($discounts as $discount)
                 <tr class="hover:bg-gray-50">
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                        <span class="font-bold text-gray-900">{{ $discount->name }}</span>
+                    </td>
                     <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                         <span class="font-bold text-gray-900">{{ $discount->code }}</span>
                     </td>

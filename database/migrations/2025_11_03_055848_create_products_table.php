@@ -25,7 +25,6 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('product_id')->nullable()->unique(); // Your internal SKU
             $table->string('invoice_number')->nullable()->unique();
-            $table->string('boxing_type')->nullable(); // e.g., "Box of 6", "Single Item"
             $table->boolean('is_visible')->default(true);
             $table->boolean('is_for_men')->default(false);
             $table->boolean('is_for_women')->default(false);

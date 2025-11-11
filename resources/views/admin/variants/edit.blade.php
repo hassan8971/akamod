@@ -75,8 +75,15 @@
                 </div>
                 <div>
                     <label for="buy_source" class="block text-sm font-medium text-gray-700 text-right">سورس خرید</label>
-                    <input type="text" name="buy_source" id="buy_source" value="{{ old('buy_source', $variant->buy_source) }}" 
-                           min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-right">
+                    <select name="buy_source_id" id="buy_source_id"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach ($buySources as $source)
+                            <option value="{{ $source->id }}" @selected(old('buy_source_id', $variant->buy_source_id) == $source->id)>
+                                {{ $source->name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 

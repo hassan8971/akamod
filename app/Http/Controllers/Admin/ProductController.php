@@ -9,6 +9,7 @@ use App\Models\Video;
 use App\Models\Size;
 use App\Models\Color;
 use App\Models\PackagingOption;
+use App\Models\BuySource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
@@ -35,6 +36,7 @@ class ProductController extends Controller
         $categories = Category::all();
         $sizes = Size::orderBy('name')->get();
         $colors = Color::orderBy('name')->get();
+        $buySources = BuySource::orderBy('name')->get();
         $allProducts = Product::select('id', 'name')->get(); 
         $allVideos = Video::all();
         $allPackagingOptions = PackagingOption::where('is_active', true)->get();
@@ -63,6 +65,7 @@ class ProductController extends Controller
             'product', 
             'sizes', 
             'colors',
+            'buySources',
             'allProducts',
             'allVideos',
             'allPackagingOptions'
@@ -82,7 +85,6 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'product_id' => 'required|string|max:255|unique:products,product_id',
             'invoice_number' => 'nullable|string|max:255|unique:products,invoice_number',
-            'boxing_type' => 'nullable|string|max:100',
             'is_visible' => 'boolean',
             'is_for_men' => 'boolean',
             'is_for_women' => 'boolean',
@@ -95,7 +97,7 @@ class ProductController extends Controller
             'variants.*.discount_price' => 'nullable|integer|min:0|lt:variants.*.price',
             'variants.*.buy_price' => 'nullable|integer|min:0',
             'variants.*.stock' => 'required_with:variants|integer|min:0',
-            'variants.*.buy_source' => 'nullable|string|max:255',
+            'variants.*.buy_source_id' => 'nullable|integer|exists:buy_sources,id',
 
             // Media Validation
             'images' => 'nullable|array',
@@ -197,6 +199,7 @@ class ProductController extends Controller
         $categories = Category::all();
         $sizes = Size::orderBy('name')->get();
         $colors = Color::orderBy('name')->get();
+        $buySources = BuySource::orderBy('name')->get();
         
         $product->load('variants', 'images', 'videos', 'relatedProducts'); 
         
@@ -205,9 +208,11 @@ class ProductController extends Controller
                                 ->get();
 
         $allVideos = Video::all();
+        $avg_sale_price = $product->variants->where('discount_price', '>', 0)->avg('discount_price');
+        $avg_buy_price = $product->variants->where('buy_price', '>', 0)->avg('buy_price');
         $allPackagingOptions = PackagingOption::where('is_active', true)->get();
         
-        return view('admin.products.edit', compact('product', 'categories', 'sizes', 'colors', 'allProducts', 'allVideos', 'allPackagingOptions'));
+        return view('admin.products.edit', compact('product', 'categories', 'sizes', 'colors', 'buySources', 'allProducts', 'allVideos', 'allPackagingOptions', 'avg_sale_price', 'avg_buy_price'));
     }
 
     /**
@@ -230,7 +235,6 @@ class ProductController extends Controller
                 Rule::unique('products', 'invoice_number')->ignore($product->id)
             ],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('products')->ignore($product->id)],
-            'boxing_type' => 'nullable|string|max:100',
             'is_visible' => 'boolean',
             'is_for_men' => 'boolean',
             'is_for_women' => 'boolean',

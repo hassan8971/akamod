@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('discounts', function (Blueprint $table) {
             $table->id();
+            $table->string('name')->default('Discount');
             $table->string('code')->unique(); // کد تخفیف، مثلا: BAHAR20
             $table->enum('type', ['percent', 'fixed'])->default('fixed'); // نوع: درصدی یا مبلغ ثابت
             $table->unsignedInteger('value'); // مقدار (مثلا 20 برای درصد یا 50000 برای تومان)

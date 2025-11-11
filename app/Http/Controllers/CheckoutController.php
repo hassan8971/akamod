@@ -105,6 +105,11 @@ class CheckoutController extends Controller
             // --- FIX: Validate 'shipping_method' instead of 'payment_method' ---
             'shipping_method' => 'required|string|in:pishaz,tipax',
             'packaging_id' => 'required|exists:packaging_options,id',
+
+            'payment_method' => 'required|string|in:online,cod,card',
+            'transaction_code' => 'nullable|string|required_if:payment_method,card|max:255',
+        ], [
+            'transaction_code.required_if' => 'لطفاً کد تراکنش کارت به کارت را وارد کنید.',
         ]);
 
         // Use a database transaction to ensure all data is saved, or none is.
@@ -152,6 +157,19 @@ class CheckoutController extends Controller
             // --- FIX: Get shipping method name ---
             $shippingMethodName = $request->shipping_method === 'pishaz' ? 'پست پیشتاز' : 'تیپاکس';
 
+            $payment_status = 'pending'; // پیش‌فرض برای 'online' و 'card'
+            $order_status = 'pending_payment'; // پیش‌فرض برای 'online' و 'card'
+
+            if ($request->payment_method == 'online') {
+                $payment_status = 'confirmed'; // پرداخت در محل هنوز پرداخت نشده
+                $order_status = 'processing'; // اما سفارش باید پردازش شود
+            }
+
+            if ($request->payment_method == 'cod') {
+                $payment_status = 'pending'; // پرداخت در محل هنوز پرداخت نشده
+                $order_status = 'processing'; // اما سفارش باید پردازش شود
+            }
+
             $order = Order::create([
                 'user_id' => Auth::id(),
                 'shipping_address_id' => $shippingAddress->id,
@@ -165,8 +183,9 @@ class CheckoutController extends Controller
                 'discount_code' => $discountCode,
                 'discount_amount' => abs($discountAmount),
                 'total' => $total,
-                'payment_method' => 'cod', // Hardcode payment method for now
-                'payment_status' => 'pending',
+                'payment_method' => $request->payment_method, // <-- اصلاح شد
+                'payment_status' => $payment_status, // <-- اصلاح شد
+                'transaction_code' => $request->transaction_code,
             ]);
 
             // --- FIX: Corrected order code generation ---

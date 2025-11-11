@@ -18,6 +18,11 @@
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">نام تخفیف (برای نمایش در پنل)</label>
+                    <input type="text" name="name" id="name" value="{{ old('name', $discount->name) }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="مثال: تخفیf بهاره ۱۴۰۴" required>
+                    @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+                <div>
                     <label for="code" class="block text-sm font-medium text-gray-700">کد تخفیف</label>
                     <input type="text" name="code" id="code" value="{{ old('code', $discount->code) }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required dir="ltr">
                     @error('code') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror

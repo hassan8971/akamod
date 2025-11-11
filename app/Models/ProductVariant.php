@@ -18,7 +18,7 @@ class ProductVariant extends Model
         'discount_price',
         'buy_price',
         'stock', // How many you have'
-        'buy_source',
+        'buy_source_id',
         'boxing'
     ];
 
@@ -36,5 +36,12 @@ class ProductVariant extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    
+    // Get the buy source for this variant.
+    public function buySource(): BelongsTo
+    {
+        return $this->belongsTo(BuySource::class);
     }
 }

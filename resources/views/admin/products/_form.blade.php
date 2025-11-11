@@ -23,12 +23,6 @@
             <textarea name="description" id="description" rows="8" 
                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-right">{{ old('description', $product->description ?? '') }}</textarea>
         </div>
-
-        <div>
-            <label for="boxing_type" class="block text-sm font-medium text-gray-700 text-right">نوع بسته‌بندی (مثلاً: «تکی»، «بسته ۶ عددی»)</label>
-            <input type="text" name="boxing_type" id="boxing_type" value="{{ old('boxing_type', $product->boxing_type ?? '') }}" 
-                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-right">
-        </div>
     </div>
 
     <div class="md:col-span-1 space-y-6">

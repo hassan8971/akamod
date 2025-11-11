@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\PackagingOptionController;
 use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\SizeController;
 use App\Http\Controllers\Admin\ColorController;
+use App\Http\Controllers\Admin\BuySourceController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\Admin\ProductVariantController;
@@ -92,6 +93,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('videos', VideoController::class)->except(['show']);
         Route::resource('sizes', SizeController::class)->except(['show']);
         Route::resource('colors', ColorController::class)->except(['show']);
+        Route::resource('buy-sources', BuySourceController::class)->except(['show']);
 
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');

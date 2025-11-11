@@ -39,6 +39,7 @@
             // --- Discount State (from controller) ---
             discountAmount: {{ $discountAmount ?? 0 }},
             discountCode: '{{ $discountCode ?? '' }}',
+            selectedPayment: '{{ old('payment_method', 'cod') }}', // 'cod' as default
             
             // --- AJAX Form State (moved from nested component) ---
             discountInput: '{{ $discountCode ?? '' }}', // The text field
@@ -133,6 +134,7 @@
             <form id="checkout-form" action="{{ route('checkout.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="shipping_method" x-model="selectedShipping">
+                <input type="hidden" name="payment_method" x-model="selectedPayment">
 
                 <div class="bg-white shadow-md rounded-lg p-6">
                     <h2 class="text-2xl font-semibold mb-6 text-right">اطلاعات ارسال</h2>
@@ -303,6 +305,53 @@
                         <p>مبلغ کل</p>
                     </div>
                 </div>
+
+                <div class="border-t my-6"></div>
+                <h3 class="text-lg font-semibold mb-4 text-right">روش پرداخت</h3>
+                <div class="space-y-4">
+                    <!-- گزینه ۱: پرداخت آنلاین (فعلا غیرفعال) -->
+                    <label class="flex items-center p-4 border rounded-lg cursor-not-allowed bg-gray-50 opacity-50"
+                           :class="{ 'bg-blue-50 border-blue-500 ring-2 ring-blue-500': selectedPayment === 'online' }">
+                        <input type="radio" name="payment_method_option" value="online" x-model="selectedPayment" class="text-blue-600 ml-3" disabled>
+                        <span class="flex-grow text-sm font-medium text-gray-700">
+                            پرداخت آنلاین (به زودی)
+                        </span>
+                    </label>
+                    
+                    <!-- گزینه ۲: پرداخت در محل -->
+                    <label class="flex items-center p-4 border rounded-lg cursor-pointer"
+                           :class="{ 'bg-blue-50 border-blue-500 ring-2 ring-blue-500': selectedPayment === 'cod' }">
+                        <input type="radio" name="payment_method_option" value="cod" x-model="selectedPayment" class="text-blue-600 ml-3">
+                        <span class="flex-grow text-sm font-medium text-gray-700">
+                            پرداخت در محل
+                        </span>
+                    </label>
+
+                    <!-- گزینه ۳: کارت به کارت -->
+                    <label class="flex items-center p-4 border rounded-lg cursor-pointer"
+                           :class="{ 'bg-blue-50 border-blue-500 ring-2 ring-blue-500': selectedPayment === 'card' }">
+                        <input type="radio" name="payment_method_option" value="card" x-model="selectedPayment" class="text-blue-600 ml-3">
+                        <span class="flex-grow text-sm font-medium text-gray-700">
+                            کارت به کارت
+                        </span>
+                    </label>
+                    
+                    <!-- فیلد کد تراکنش (فقط وقتی کارت به کارت انتخاب است) -->
+                    <div x-show="selectedPayment === 'card'" x-transition style="display: none;">
+                        <label for="transaction_code" class="block text-sm font-medium text-gray-700 text-right">کد تراکنش</label>
+                        <input type="text" name="transaction_code" id="transaction_code" 
+                               form="checkout-form"
+                               value="{{ old('transaction_code') }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-left" 
+                               dir="ltr"
+                               placeholder="123456789">
+                        @error('transaction_code')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                        <p class="text-xs text-gray-500 mt-2">لطفاً پس از واریز، کد تراکنش را در این فیلد وارد کنید.</p>
+                    </div>
+                </div>
+                <!-- --- End Payment Section --- -->
 
                 <button type="submit" form="checkout-form"
                         class="w-full mt-8 bg-blue-600 text-white text-lg font-semibold py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">

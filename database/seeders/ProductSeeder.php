@@ -27,7 +27,7 @@ class ProductSeeder extends Seeder
         // Create 20 products
         Product::factory(20)
             // For each product, create 3 variants
-            ->has(ProductVariant::factory()->count(3), 'variants')
+            // ->has(ProductVariant::factory()->count(3), 'variants')
             // For each product, create 2 images
             ->has(ProductImage::factory()->count(2), 'images')
             // Create the product

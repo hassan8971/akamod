@@ -31,6 +31,7 @@ return new class extends Migration
             $table->unsignedInteger('total'); // subtotal + shipping + taxes
             
             $table->string('payment_method')->nullable();
+            $table->string('transaction_code')->nullable();
             $table->string('payment_status')->default('pending'); // pending, paid, failed
 
 

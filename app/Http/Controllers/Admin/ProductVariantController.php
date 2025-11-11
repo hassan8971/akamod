@@ -8,6 +8,7 @@ use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use App\Models\Size;
 use App\Models\Color;
+use App\Models\BuySource;
 
 class ProductVariantController extends Controller
 {
@@ -24,7 +25,7 @@ class ProductVariantController extends Controller
             'price' => 'required|numeric|min:0',
             'buy_price' => 'nullable|integer|min:0',
             'stock' => 'required|integer|min:0',
-            'buy_source' => 'string',
+            'buy_source_id' => 'nullable|integer|exists:buy_sources,id',
         ]);
 
         // Convert price from dollars (e.g., 10.50) to cents (1050)
@@ -47,9 +48,10 @@ class ProductVariantController extends Controller
         $product = $variant->product; 
         $sizes = Size::orderBy('name')->get();
         $colors = Color::orderBy('name')->get();
+        $buySources = BuySource::orderBy('name')->get();
         
         
-        return view('admin.variants.edit', compact('variant', 'product', 'sizes', 'colors'));
+        return view('admin.variants.edit', compact('variant', 'product', 'sizes', 'colors', 'buySources'));
     }
 
     /**
@@ -64,11 +66,11 @@ class ProductVariantController extends Controller
             'discount_price' => 'nullable|integer|min:0',
             'buy_price' => 'nullable|integer|min:0',
             'stock' => 'required|integer|min:0',
-            'buy_source' => 'string',
+            'buy_source_id' => 'nullable|integer|exists:buy_sources,id',
         ]);
 
         // Convert price from dollars (e.g., 10.50) to cents (1050)
-        $validated['price'] = (int) ($validated['price'] * 100);
+        $validated['price'] = (int) ($validated['price']);
 
         $variant->update($validated);
 

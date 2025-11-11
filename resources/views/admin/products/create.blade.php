@@ -29,6 +29,7 @@
           variants: [], 
           sizes: {{ json_encode($sizes) }},
           colors: {{ json_encode($colors) }},
+          buySources: {{ json_encode($buySources) }},
           embedVideos: ['']
       }">
     @csrf
@@ -90,11 +91,18 @@
                         <input type="number" :name="'variants[' + index + '][stock]'" x-model="variant.stock" placeholder="100"
                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">سورس خرید</label>
-                        <input type="text" :name="'variants[' + index + '][buy_source]'" x-model="variant.buy_source" placeholder="منبع"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
-                    </div>
+                    <template x-for="(variant, index) in variants" :key="index">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">سورس خرید</label>
+                            <select :name="'variants[' + index + '][buy_source_id]'" x-model="variant.buy_source_id"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                                <option value="">انتخاب...</option>
+                                <template x-for="source in buySources" :key="source.id">
+                                    <option :value="source.id" x-text="source.name"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </template>
 
                     <div class="md:col-span-7 flex justify-end">
                         <button type="button" @click="variants.splice(index, 1)"
