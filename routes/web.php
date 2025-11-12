@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\ColorController;
 use App\Http\Controllers\Admin\BuySourceController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\Admin\ProductImageController;
 use App\Http\Controllers\Admin\VideoController;
@@ -29,6 +30,7 @@ Route::get('/', function () {
 Route::get('shop', [ShopController::class, 'index'])->name('shop.index');
 Route::get('shop/products/{slug}', [ShopController::class, 'show'])->name('shop.show');
 Route::get('shop/categories/{slug}', [ShopController::class, 'category'])->name('shop.category');
+Route::get('search', [ShopController::class, 'search'])->name('search.index');
 
 Route::get('categories', [ShopController::class, 'categoriesIndex'])->name('shop.categories.index');
 
@@ -132,6 +134,9 @@ Route::middleware(['auth'])->group(function () {
     // Route::get('/home', function () {
     //     return view('home');
     // })->name('home');
+
+    Route::post('products/{product}/reviews', [ProductReviewController::class, 'store'])
+          ->name('products.reviews.store');
     
     // Add other protected user routes here (e.g., profile, orders)
 });

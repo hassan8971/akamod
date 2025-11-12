@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class ShopController extends Controller
 {
@@ -41,8 +42,22 @@ class ShopController extends Controller
     {
         $product = Product::where('slug', $slug)
                             ->where('is_visible', true)
-                            ->with(['images', 'variants']) // Ecalb
+                            ->with([
+                                'category', 'variants', 'images', 'videos', 
+                                // --- بارگیری روابط تودرتو (تا ۳ سطح) ---
+                                'approvedReviews.user', 
+                                'approvedReviews.replies.user',
+                                'approvedReviews.replies.replies.user'
+                            ])
                             ->firstOrFail();
+
+        $user = Auth::user();
+        $hasPurchased = false;
+
+        if ($user) {
+            $hasPurchased = $user->hasPurchased($product->id);
+            $canReview = $hasPurchased;
+        }
         
         // This is a bit advanced, but useful for the variant selector
         // We get all unique sizes and colors
@@ -56,7 +71,7 @@ class ShopController extends Controller
             return $variant->size . '-' . $variant->color;
         })->toJson();
 
-        return view('shop.show', compact('product', 'options', 'variantsJson'));
+        return view('shop.show', compact('product', 'options', 'variantsJson', 'hasPurchased'));
     }
 
     /**
@@ -74,5 +89,27 @@ class ShopController extends Controller
         $categories = Category::where('is_visible', true)->get();
 
         return view('shop.index', compact('products', 'categories', 'category'));
+    }
+
+    public function search(Request $request)
+    {
+        // 1. Get the search query from the URL (e.g., /search?q=my-query)
+        $query = $request->input('q');
+
+        // 2. Perform the search
+        $products = Product::where('is_visible', true)
+            ->where(function ($db) use ($query) {
+                // Search in product name
+                $db->where('name', 'LIKE', "%{$query}%")
+                // Also search in product description
+                   ->orWhere('description', 'LIKE', "%{$query}%");
+            })
+            ->with('images', 'variants') // Load relationships
+            ->latest() // Show newest first
+            ->paginate(12) // Paginate the results
+            ->withQueryString(); // Keep '?q=...' in pagination links
+
+        // 3. Return the results view
+        return view('shop.search-results', compact('products', 'query'));
     }
 }

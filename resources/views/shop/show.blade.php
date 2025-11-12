@@ -90,4 +90,76 @@
 
         </div>
     </div>
+
+    <div class="mt-12 bg-white shadow-lg rounded-lg p-8">
+        <h2 class="text-2xl font-bold mb-6">نظرات کاربران ({{ $product->approvedReviewsCount() }})</h2>
+
+        <div class="mb-8 p-6 border rounded-lg bg-gray-50">
+            @auth
+                @if ($hasPurchased)
+                    <h3 class="text-xl font-semibold mb-4">نظر خود را ثبت کنید</h3>
+                    <div x-data="{ rating: 0, hoverRating: 0 }">
+                        <form action="{{ route('products.reviews.store', $product) }}" method="POST">
+                            @csrf
+                            <div class="flex items-center mb-4">
+                                <label class="text-lg font-medium text-gray-800 ml-4">امتیاز شما:</label>
+                                <div class="flex space-x-1 space-x-reverse">
+                                    <template x-for="star in 5" :key="star">
+                                        <button type="button" 
+                                                @click="rating = star" 
+                                                @mouseenter="hoverRating = star" 
+                                                @mouseleave="hoverRating = rating"
+                                                class="text-3xl text-gray-300 focus:outline-none"
+                                                :class="{ 'text-yellow-400': hoverRating >= star, 'text-gray-300': hoverRating < star }">
+                                            &starf;
+                                        </button>
+                                    </template>
+                                </div>
+                                <input type="hidden" name="rating" x-model="rating">
+                            </div>
+                            @error('rating') <p class="text-red-500 text-sm mb-2">{{ $message }}</p> @enderror
+                            
+                            <div>
+                                <label for="comment" class="block text-sm font-medium text-gray-700">متن نظر</label>
+                                <textarea name="comment" id="comment" rows="4" 
+                                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" 
+                                          placeholder="تجربه‌ی خود را از استفاده از این محصول بنویسید..." 
+                                          required minlength="10">{{ old('comment') }}</textarea>
+                                @error('comment') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="flex justify-end mt-4">
+                                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                    ثبت نظر
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                @else
+                    <p class="text-center text-gray-600">
+                        شما باید این محصول را خریداری کرده باشید تا بتوانید نظری ثبت کنید.
+                    </p>
+                @endif
+            @else
+                <p class="text-center text-gray-600">
+                    برای ثبت نظر، لطفاً ابتدا <a href="{{ route('login') }}" class="text-blue-600 hover:underline font-medium">وارد شوید</a>.
+                </p>
+            @endauth
+        </div>
+        
+        <div class="space-y-6">
+            @forelse ($product->approvedReviews as $review)
+                @include('shop._review_comment', [
+                    'review' => $review, 
+                    'product' => $product, 
+                    'hasPurchased' => $hasPurchased
+                ])
+            @empty
+                <p class="text-center text-gray-500 py-8">
+                    هنوز هیچ نظری برای این محصول ثبت نشده است. شما اولین نفر باشید!
+                </p>
+            @endforelse
+        </div>
+    </div>
+</div>
 @endsection

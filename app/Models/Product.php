@@ -81,4 +81,42 @@ class Product extends Model
     {
         return $this->belongsTo(Admin::class);
     }
+
+    /**
+     * Get all reviews for this product.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    /**
+     * Get only the approved reviews, sorted by newest.
+     * (فقط نظرات تایید شده را برمی‌گرداند)
+     */
+    public function approvedReviews(): HasMany
+    {
+        return $this->reviews()
+                    ->where('is_approved', true)
+                    ->whereNull('parent_id'); // <-- فقط نظراتی که والد ندارند
+    }
+
+    /**
+     * Get the average rating for this product.
+     * (میانگین امتیازات را محاسبه می‌کند)
+     */
+    public function averageRating(): float
+    {
+        // avg() will return 0 if there are no reviews
+        return (float) $this->approvedReviews()->avg('rating');
+    }
+
+    /**
+     * Get the count of approved ratings.
+     * (تعداد کل نظرات تایید شده را برمی‌گرداند)
+     */
+    public function approvedReviewsCount(): int
+    {
+        return $this->approvedReviews()->count();
+    }
 }
