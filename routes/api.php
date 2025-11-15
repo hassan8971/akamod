@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\ProductReviewController;
 use App\Http\Controllers\Api\user\UserPanelController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\MenuController;
+use App\Http\Controllers\Api\BlogController;
+
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{slug}', [ProductController::class, 'show']);
@@ -19,6 +21,9 @@ Route::get('/categories/{slug}', [CategoryController::class, 'show'])->where('sl
 
 Route::get('/menus', [MenuController::class, 'index']);
 
+Route::get('blog/posts', [BlogController::class, 'index']);
+Route::get('blog/posts/{slug}', [BlogController::class, 'show']);
+Route::get('blog/categories', [BlogController::class, 'categories']);
 
 // این مسیر پیش‌فرض لاراول برای احراز هویت با Sanctum است
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

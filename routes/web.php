@@ -12,6 +12,8 @@ use App\Http\Controllers\Admin\SizeController;
 use App\Http\Controllers\Admin\ColorController;
 use App\Http\Controllers\Admin\BuySourceController;
 use App\Http\Controllers\Admin\MenuItemController;
+use App\Http\Controllers\Admin\BlogCategoryController;
+use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProductReviewController;
@@ -105,6 +107,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::resource('packaging-options', PackagingOptionController::class)->except(['show']);
         Route::resource('discounts', DiscountController::class)->except(['show']);
+
+        Route::resource('blog-categories', BlogCategoryController::class)->except(['show']);
+        Route::resource('posts', PostController::class);
     });
 });
 
