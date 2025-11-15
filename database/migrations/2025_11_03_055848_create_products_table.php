@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('description')->nullable();
+            $table->text('care_and_maintenance')->nullable();
             $table->string('product_id')->nullable()->unique(); // Your internal SKU
             $table->string('invoice_number')->nullable()->unique();
             $table->boolean('is_visible')->default(true);

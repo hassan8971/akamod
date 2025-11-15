@@ -31,7 +31,7 @@
                 <div>
                     <label for="variant_size" class="block text-sm font-medium text-gray-700">سایز</label>
                     <select name="size" id="variant_size"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
                         <option value="">انتخاب کنید...</option>
                         @foreach ($sizes as $size)
                             <option value="{{ $size->name }}" @selected(old('size', $variant->size) == $size->name)>

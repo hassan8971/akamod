@@ -19,13 +19,17 @@ class ProductVariantController extends Controller
     public function store(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'color' => 'nullable|string|max:100',
-            'size' => 'nullable|string|max:100',
+            'color' => 'required|string|max:100',
+            'size' => 'required|string|max:100',
             'discount_price' => 'nullable|integer|min:0',
             'price' => 'required|numeric|min:0',
             'buy_price' => 'nullable|integer|min:0',
             'stock' => 'required|integer|min:0',
             'buy_source_id' => 'nullable|integer|exists:buy_sources,id',
+        ], [
+            'size.required' => 'فیلد سایز الزامی است.',
+            'color.required' => 'فیلد رنگ الزامی است.',
+            'discount_price.lt' => 'قیمت تخفیf باید کمتر از قیمت اصلی باشد.'
         ]);
 
         // Convert price from dollars (e.g., 10.50) to cents (1050)
@@ -60,13 +64,17 @@ class ProductVariantController extends Controller
     public function update(Request $request, ProductVariant $variant)
     {
         $validated = $request->validate([
-            'color' => 'nullable|string|max:100',
-            'size' => 'nullable|string|max:100',
+            'color' => 'required|string|max:100',
+            'size' => 'required|string|max:100',
             'price' => 'required|numeric|min:0',
             'discount_price' => 'nullable|integer|min:0',
             'buy_price' => 'nullable|integer|min:0',
             'stock' => 'required|integer|min:0',
             'buy_source_id' => 'nullable|integer|exists:buy_sources,id',
+        ], [
+            'size.required' => 'فیلد سایز الزامی است.',
+            'color.required' => 'فیلد رنگ الزامی است.',
+            'discount_price.lt' => 'قیمت تخفیf باید کمتر از قیمت اصلی باشد.'
         ]);
 
         // Convert price from dollars (e.g., 10.50) to cents (1050)

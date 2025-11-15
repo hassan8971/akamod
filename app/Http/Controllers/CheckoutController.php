@@ -158,16 +158,14 @@ class CheckoutController extends Controller
             $shippingMethodName = $request->shipping_method === 'pishaz' ? 'پست پیشتاز' : 'تیپاکس';
 
             $payment_status = 'pending'; // پیش‌فرض برای 'online' و 'card'
-            $order_status = 'pending_payment'; // پیش‌فرض برای 'online' و 'card'
+            $order_status = 'pending'; // پیش‌فرض برای 'online' و 'card'
 
             if ($request->payment_method == 'online') {
                 $payment_status = 'confirmed'; // پرداخت در محل هنوز پرداخت نشده
-                $order_status = 'processing'; // اما سفارش باید پردازش شود
             }
 
             if ($request->payment_method == 'cod') {
                 $payment_status = 'pending'; // پرداخت در محل هنوز پرداخت نشده
-                $order_status = 'processing'; // اما سفارش باید پردازش شود
             }
 
             $order = Order::create([

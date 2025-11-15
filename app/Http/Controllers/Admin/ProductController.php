@@ -83,6 +83,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
+            'care_and_maintenance' => 'nullable|string',
             'product_id' => 'required|string|max:255|unique:products,product_id',
             'invoice_number' => 'nullable|string|max:255|unique:products,invoice_number',
             'is_visible' => 'boolean',
@@ -91,8 +92,8 @@ class ProductController extends Controller
 
             // Variants Validation (بر اساس فرم شما)
             'variants' => 'nullable|array',
-            'variants.*.size' => 'nullable|string|max:255',
-            'variants.*.color' => 'nullable|string|max:255',
+            'variants.*.size' => 'required|string|max:255',
+            'variants.*.color' => 'required|string|max:255',
             'variants.*.price' => 'required_with:variants|integer|min:0',
             'variants.*.discount_price' => 'nullable|integer|min:0|lt:variants.*.price',
             'variants.*.buy_price' => 'nullable|integer|min:0',
@@ -118,6 +119,8 @@ class ProductController extends Controller
             'packaging_option_ids' => 'nullable|array',
             'packaging_option_ids.*' => 'exists:packaging_options,id',
         ], [
+            'variants.*.size.required' => 'فیلد سایز برای همه‌ی متغیرها الزامی است.',
+            'variants.*.color.required' => 'فیلد رنگ برای همه‌ی متغیرها الزامی است.',
             'variants.*.discount_price.lt' => 'قیمت با تخفیf باید کمتر از قیمت اصلی باشد.',
             'video_embeds.*.regex' => 'کد الصاقی (embed) معتبر نیست. باید شامل تگ <iframe> باشد.'
         ]);
@@ -225,6 +228,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
+            'care_and_maintenance' => 'nullable|string',
             'product_id' => ['required', 'string', 'max:255', Rule::unique('products')->ignore($product->id)],
             'invoice_number' => [
                 'nullable',

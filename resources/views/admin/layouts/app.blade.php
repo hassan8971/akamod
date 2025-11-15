@@ -98,6 +98,13 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0v-4a1 1 0 011-1h2a1 1 0 011 1v4m-4 0V9m0 0h14m-14 0V5m14 16v-4a1 1 0 00-1-1h-2a1 1 0 00-1 1v4m-4 0V9"></path></svg>
                     <span>منابع خرید</span>
                 </a>
+
+                <a href="{{ route('admin.menu-items.index') }}" 
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-200 hover:bg-slate-700 hover:text-white
+                        {{ request()->routeIs('admin.menu-items.*') ? 'bg-slate-900 text-white' : '' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    <span>مدیریت منوها</span>
+                </a>
                 
                 </nav>
 

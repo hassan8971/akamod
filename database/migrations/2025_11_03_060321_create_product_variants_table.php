@@ -13,8 +13,8 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
 
             // The specific properties
-            $table->string('color')->nullable();
-            $table->string('size')->nullable();
+            $table->string('color');
+            $table->string('size');
             
             // Price & Stock belong to the VARIANT, not the product
             $table->unsignedInteger('price'); // Store as cents (e.g., 1000 = $10.00)

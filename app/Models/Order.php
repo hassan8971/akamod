@@ -47,4 +47,9 @@ class Order extends Model
         // is 'address_id'
         return $this->belongsTo(Address::class);
     }
+
+    public function packagingOption(): BelongsTo
+    {
+        return $this->belongsTo(PackagingOption::class, 'packaging_option_id');
+    }
 }

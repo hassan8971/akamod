@@ -1,76 +1,102 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'فروشگاه من')</title>
-
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="//unpkg.com/alpinejs" defer></script>
-    <link href="{{ asset('css/all.css') }}" rel="stylesheet">
     <style>
-        body { font-family: IRANSansX;  }
-        /* برای نمایش بهتر فونت فارسی، بهتر است یک فونت فارسی مانند وزیر یا ایران‌سنس اضافه کنید */
-
+        body { font-family: 'Inter', sans-serif; /* فونت فارسی شما */ }
+        /* This is for Alpine.js dropdowns */
+        .group:hover .group-hover\:block { display: block; }
     </style>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="font-sans antialiased text-gray-900 bg-gray-100">
+<body class="bg-gray-100 text-gray-900">
 
-    <nav class="bg-white shadow-md p-6">
-        <div class="container mx-auto flex justify-between items-center">
-            <a href="{{ route('shop.index') }}" class="text-2xl font-bold text-blue-600">فروشگاه من</a>
-            <div class="text-right">
-                <a href="{{ route('shop.index') }}" class="px-4 py-2 text-gray-600 hover:text-blue-600">فروشگاه</a>
-
-                <a href="{{ route('cart.index') }}" class="relative text-gray-600 hover:text-blue-600">
-                    <svg class="w-6 h-6 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                    
-                    <span class="absolute -top-2 -left-3 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
-                        {{ \Darryldecode\Cart\Facades\CartFacade::getContent()->count() }}
-                    </span>
-                </a>
-
-                <div class="flex-1 flex items-center justify-center px-2 lg:ml-6 lg:justify-end">
-                    <div class="max-w-lg w-full lg:max-w-xs">
-                        <form action="{{ route('search.index') }}" method="GET" class="relative">
-                            <label for="search" class="sr-only">جستجو</label>
-                            <div class="relative">
-                                <button type="submit" class="absolute inset-y-0 left-0 pl-3 flex items-center justify-center">
-                                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                                <input id="search" name="q" 
-                                       class="block w-full text-right bg-white border border-gray-300 rounded-md py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
-                                       placeholder="جستجو..." type="search"
-                                       value="{{ request('q') ?? '' }}">
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                @guest
-                    <a href="{{ route('login') }}" class="px-4 py-2 text-gray-600 hover:text-blue-600">ورود</a>
-                @else
-                    <a href="{{ route('home') }}" class="px-4 py-2 text-gray-600 hover:text-blue-600">حساب کاربری من</a>
-                    <a href="{{ route('logout') }}"
-                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                       class="px-4 py-2 text-gray-600 hover:text-blue-600">
-                        خروج
+    <nav class="bg-white shadow-md" x-data="{ open: false }">
+        <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <a href="{{ route('home') }}" class="flex-shrink-0 flex items-center">
+                        <span class="text-xl font-bold text-blue-600">فروشگاه من</span>
                     </a>
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
-                @endguest
-            </div>
-        </div>
-    </nav>
+                    
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8 sm:mr-6">
+                        @foreach ($headerMenuItems as $item)
+                            @if ($item->children->isEmpty())
+                                <a href="{{ url($item->link_url) }}" 
+                                   class="inline-flex items-center px-1 pt-1 border-b-2 
+                                          {{ request()->is(ltrim($item->link_url, '/')) ? 'border-blue-500' : 'border-transparent' }} 
+                                          text-sm font-medium hover:border-gray-300">
+                                    {{ $item->name }}
+                                </a>
+                            @else
+                                <div class="relative group" x-data="{ open: false }">
+                                    <button @click="open = !open" @click.away="open = false" 
+                                            class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium hover:border-gray-300 h-full">
+                                        <span>{{ $item->name }}</span>
+                                        <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="open" 
+                                         x-transition
+                                         class="absolute z-20 -mr-4 mt-0 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 group-hover:block"
+                                         style="display: none;">
+                                        <div class="py-1">
+                                            @foreach ($item->children as $child)
+                                                <a href="{{ url($child->link_url) }}" 
+                                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                   {{ $child->name }}
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                    </div>
 
-    <main class="container mx-auto p-6 my-8">
+                </div>
+        </div>
+
+        <div class="sm:hidden" id="mobile-menu" x-show="open" @click.away="open = false" style="display: none;">
+            <div class="pt-2 pb-3 space-y-1">
+                @foreach ($headerMenuItems as $item)
+                    @if ($item->children->isEmpty())
+                        <a href="{{ url($item->link_url) }}" 
+                           class="block pl-3 pr-4 py-2 border-r-4 
+                                  {{ request()->is(ltrim($item->link_url, '/')) ? 'border-blue-500 bg-blue-50' : 'border-transparent' }} 
+                                  text-base font-medium hover:bg-gray-50">
+                           {{ $item->name }}
+                        </a>
+                    @else
+                        <span class="block pl-3 pr-4 py-2 text-base font-medium text-gray-500">{{ $item->name }} (دارای زیرمنو)</span>
+                    @endif
+                @endforeach
+                
+                </div>
+            </div>
+        </nav>
+
+    <main>
         @yield('content')
     </main>
 
-    <footer class="bg-white shadow-inner mt-12 p-6">
-        <div class="container mx-auto text-center text-gray-600">
-            &copy; {{ date('Y') }} فروشگاه من. تمام حقوق محفوظ است.
+    <footer class="bg-white mt-12 border-t border-gray-200">
+        <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+            <div class="flex justify-center space-x-6 space-x-reverse mb-8">
+                @foreach ($footerMenuItems as $item)
+                    <a href="{{ url($item->link_url) }}" class="text-sm text-gray-500 hover:text-gray-900">
+                        {{ $item->name }}
+                    </a>
+                @endforeach
+            </div>
+            <p class="text-center text-sm text-gray-500">
+                &copy; {{ date('Y') }} فروشگاه من. تمام حقوق محفوظ است.
+            </p>
         </div>
     </footer>
 

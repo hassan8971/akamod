@@ -1,0 +1,51 @@
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ProductReviewController;
+use App\Http\Controllers\Api\user\UserPanelController;
+use App\Http\Controllers\Api\CheckoutController;
+use App\Http\Controllers\Api\MenuController;
+
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{slug}', [ProductController::class, 'show']);
+Route::get('/search', [ProductController::class, 'search']);
+
+Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/categories/{slug}', [CategoryController::class, 'show'])->where('slug', '.*');
+
+Route::get('/menus', [MenuController::class, 'index']);
+
+
+// این مسیر پیش‌فرض لاراول برای احراز هویت با Sanctum است
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+    Route::post('login/send-otp', [AuthController::class, 'sendOtp']);
+    Route::post('login/verify-otp', [AuthController::class, 'verifyOtp']);
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    
+    Route::get('/user', [UserPanelController::class, 'getUser']);
+    Route::post('logout', [AuthController::class, 'logout']);
+
+    Route::get('/user/orders', [UserPanelController::class, 'getOrders']);
+    Route::get('/user/orders/{orderId}', [UserPanelController::class, 'getOrderDetails']);
+
+    Route::post('/user/profile', [UserPanelController::class, 'updateProfile']);
+
+    Route::get('/user/addresses', [UserPanelController::class, 'getAddresses']);
+    Route::post('/user/addresses', [UserPanelController::class, 'storeAddress']);
+    Route::put('/user/addresses/{addressId}', [UserPanelController::class, 'updateAddress']);
+    Route::delete('/user/addresses/{addressId}', [UserPanelController::class, 'destroyAddress']);
+
+    Route::post('products/{product}/reviews', [ProductReviewController::class, 'store']);
+
+    Route::post('checkout', [CheckoutController::class, 'store']);
+
+});

@@ -23,6 +23,13 @@
             <textarea name="description" id="description" rows="8" 
                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-right">{{ old('description', $product->description ?? '') }}</textarea>
         </div>
+
+        <div>
+            <label for="care_and_maintenance" class="block text-sm font-medium text-gray-700">مراقبت و نگهداری (اختیاری)</label>
+            <textarea name="care_and_maintenance" id="care_and_maintenance" rows="5" 
+                      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="مثال: شستشو فقط با آب سرد...">{{ old('care_and_maintenance', $product->care_and_maintenance ?? '') }}</textarea>
+        </div>
     </div>
 
     <div class="md:col-span-1 space-y-6">

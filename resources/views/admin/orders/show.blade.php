@@ -85,7 +85,7 @@
                 <dl class="space-y-3">
                     <div class="flex justify-between items-center">
                         <dt class="text-gray-600">شناسه سفارش</dt>
-                        <dd class="font-medium">#{{ $order->id }}</dd>
+                        <dd class="font-medium">{{ $order->order_code }}</dd>
                     </div>
                     <div class="flex justify-between items-center">
                         <dt class="text-gray-600">تاریخ سفارش</dt>
@@ -97,8 +97,24 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <dt class="text-gray-600">روش پرداخت</dt>
-                        <dd class="font-medium">{{ $order->payment_method }}</dd>
+                        <dd class="font-medium">
+                            @if($order->payment_method === 'cod')
+                                پرداخت در محل
+                            @elseif($order->payment_method === 'card')
+                                 کارت به کارت
+                            @elseif($order->payment_method === 'online')
+                                 آنلاین 
+                            @endif
+                        </dd>
                     </div>
+                    @if($order->payment_method === 'card')
+    <div class="flex justify-between items-center">
+        <dt class="text-gray-600">شناسه تراکنش</dt>
+        <dd class="font-medium">
+            {{ $order->transaction_code }}
+        </dd>
+    </div>
+@endif
                     <div class="flex justify-between items-center">
                         <dt class="text-gray-600">وضعیت پرداخت</dt>
                         <dd class="font-medium">

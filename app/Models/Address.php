@@ -17,7 +17,7 @@ class Address extends Model
         'city',
         'state',
         'zip_code',
-        'mobile',
+        'phone',
     ];
 
     public function user(): BelongsTo

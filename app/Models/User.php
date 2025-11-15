@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany; 
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -85,7 +86,7 @@ class User extends Authenticatable
         // 2. Check if this user has any 'delivered' or 'shipped' orders
         // that contain any of those variant IDs.
         return $this->orders()
-            ->whereIn('status', ['delivered', 'shipped', 'processing']) // یا هر وضعیتی که نشانه خرید قطعی است
+            ->whereIn('status', ['delivered', 'shipped', 'completed']) // یا هر وضعیتی که نشانه خرید قطعی است
             ->whereHas('items', function ($query) use ($variantIds) {
                 $query->whereIn('product_variant_id', $variantIds);
             })

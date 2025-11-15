@@ -17,6 +17,7 @@ class Product extends Model
         'name',
         'slug',
         'description',
+        'care_and_maintenance',
         'product_id', // Your internal SKU
         'invoice_number',
         'is_visible',
