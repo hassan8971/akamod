@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\BlogCategory;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use App\Http\Resources\Api\PostResource;
+use App\Http\Resources\Api\BlogCategoryResource;
 
 class BlogController extends Controller
 {
@@ -20,7 +22,7 @@ class BlogController extends Controller
                      ->latest('published_at')
                      ->paginate(10);
                      
-        return $posts;
+        return PostResource::collection($posts);
     }
 
     /**
@@ -29,7 +31,7 @@ class BlogController extends Controller
     public function categories()
     {
         $categories = BlogCategory::orderBy('name')->get();
-        return $categories;
+        return BlogCategoryResource::collection($categories);
     }
 
     /**
@@ -43,6 +45,6 @@ class BlogController extends Controller
                     ->with('admin:id,name', 'category:id,name,slug')
                     ->firstOrFail();
                     
-        return $post;
+        return new PostResource($post);
     }
 }

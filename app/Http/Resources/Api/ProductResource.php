@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Http\Resources\Api;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+// Import other resources we will use
+use App\Http\Resources\Api\CategoryResource;
+use App\Http\Resources\Api\ProductVariantResource;
+use App\Http\Resources\Api\ProductImageResource;
+use App\Http\Resources\Api\VideoResource;
+use App\Http\Resources\Api\UserResource;
+
+
+class ProductResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'care' => $this->care_and_maintenance,
+            'product_id' => $this->product_id,
+            'is_for_men' => $this->is_for_men,
+            'is_for_women' => $this->is_for_women,
+            
+            // --- Use Resources for relationships ---
+            
+            // We use 'whenLoaded' to prevent errors if the relation wasn't eager-loaded
+            
+            'admin' => new UserResource($this->whenLoaded('admin')),
+            'category' => new CategoryResource($this->whenLoaded('category')),
+            
+            'images' => ProductImageResource::collection($this->whenLoaded('images')),
+            'videos' => VideoResource::collection($this->whenLoaded('videos')),
+            'variants' => ProductVariantResource::collection($this->whenLoaded('variants')),
+            
+            // For related products, we can re-use the ProductResource,
+            // but we might want a simpler version later (e.g., 'RelatedProductResource')
+            'related_products' => ProductResource::collection($this->whenLoaded('relatedProducts')),
+            
+            // Include average rating
+            'average_rating' => $this->averageRating(),
+            'reviews_count' => $this->approvedReviewsCount(),
+            
+            'created_at' => $this->created_at,
+        ];
+    }
+}

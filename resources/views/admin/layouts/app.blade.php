@@ -72,50 +72,54 @@
                 </div>
 
                 <a href="{{ route('admin.videos.index') }}" 
-                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-200 hover:bg-slate-700 hover:text-white
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg space-x-reverse text-gray-200 hover:bg-slate-700 hover:text-white
                         {{ request()->routeIs('admin.videos.*') ? 'bg-slate-900 text-white' : '' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 5h11a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1z"></path></svg>
                     <span>کتابخانه ویدیو</span>
                 </a>
 
                 <a href="{{ route('admin.sizes.index') }}" 
-                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-200 hover:bg-slate-700 hover:text-white
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg space-x-reverse text-gray-200 hover:bg-slate-700 hover:text-white
                         {{ request()->routeIs('admin.sizes.*') ? 'bg-slate-900 text-white' : '' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 1v4m0 0h-4m4 0l-5-5"></path></svg>
                     <span>مدیریت سایزها</span>
                 </a>
 
                 <a href="{{ route('admin.colors.index') }}" 
-                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-200 hover:bg-slate-700 hover:text-white
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg space-x-reverse text-gray-200 hover:bg-slate-700 hover:text-white
                         {{ request()->routeIs('admin.colors.*') ? 'bg-slate-900 text-white' : '' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
                     <span>مدیریت رنگ‌ها</span>
                 </a>
 
                 <a href="{{ route('admin.buy-sources.index') }}" 
-                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-200 hover:bg-slate-700 hover:text-white
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg space-x-reverse text-gray-200 hover:bg-slate-700 hover:text-white
                         {{ request()->routeIs('admin.buy-sources.*') ? 'bg-slate-900 text-white' : '' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0v-4a1 1 0 011-1h2a1 1 0 011 1v4m-4 0V9m0 0h14m-14 0V5m14 16v-4a1 1 0 00-1-1h-2a1 1 0 00-1 1v4m-4 0V9"></path></svg>
                     <span>منابع خرید</span>
                 </a>
 
                 <a href="{{ route('admin.menu-items.index') }}" 
-                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-200 hover:bg-slate-700 hover:text-white
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg space-x-reverse text-gray-200 hover:bg-slate-700 hover:text-white
                         {{ request()->routeIs('admin.menu-items.*') ? 'bg-slate-900 text-white' : '' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     <span>مدیریت منوها</span>
                 </a>
 
                 <a href="{{ route('admin.posts.index') }}" 
-                class="flex items-center space-x-3 px-4 py-3 rounded-lg ...
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg space-x-reverse text-gray-200 hover:bg-slate-700 hover:text-white
                         {{ request()->routeIs('admin.posts.*') ? 'bg-slate-900 text-white' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" ...><path ... d="M11 5H6..."></path></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-12.75c-.621 0-1.125-.504-1.125-1.125v-11.25c0-.621.504-1.125 1.125-1.125H6.75m0 0H5.625c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V8.625c0-.621-.504-1.125-1.125-1.125H12m0 0V4.875c0-.621-.504-1.125-1.125-1.125H9.375c-.621 0-1.125.504-1.125 1.125v2.625m3 0v2.625" />
+                    </svg>
                     <span>مقالات</span>
                 </a>
                 <a href="{{ route('admin.blog-categories.index') }}" 
-                class="flex items-center space-x-3 px-4 py-3 rounded-lg ...
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg space-x-reverse text-gray-200 hover:bg-slate-700 hover:text-white
                         {{ request()->routeIs('admin.blog-categories.*') ? 'bg-slate-900 text-white' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" ...><path ... d="M19 11H5..."></path></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                    </svg>
                     <span>دسته‌بندی‌های وبلاگ</span>
                 </a>
                 

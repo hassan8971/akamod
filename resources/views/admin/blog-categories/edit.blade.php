@@ -10,7 +10,7 @@
         </a>
     </div>
 
-    <form action="{{ route('admin.blog-categories.update', $category) }}" method="POST">
+    <form action="{{ route('admin.blog-categories.update', $category) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         @include('admin.blog-categories._form')

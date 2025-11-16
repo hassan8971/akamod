@@ -3,8 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\View; // <-- ۱. این را اضافه کنید
-use App\Models\MenuItem; // <-- ۲. این را اضافه کنید
+use Illuminate\Support\Facades\View;
+use App\Models\MenuItem;
 
 class AppServiceProvider extends ServiceProvider
 {

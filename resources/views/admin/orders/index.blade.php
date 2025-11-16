@@ -33,7 +33,7 @@
                             {{ $order->user->name ?? 'مهمان' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                            {{ $order->created_at->format('M d, Y') }}
+                            <p>تاریخ سفارش: {{ jdate($order->created_at)->format('Y/m/d') }}</p>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                             {{ number_format($order->total) }} تومان

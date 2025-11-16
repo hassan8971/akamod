@@ -89,7 +89,7 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <dt class="text-gray-600">تاریخ سفارش</dt>
-                        <dd class="font-medium">{{ $order->created_at->format('M d, Y') }}</dd>
+                        <dd class="font-medium">{{ jdate($order->created_at)->format('Y/m/d H:i:s') }}</dd>
                     </div>
                     <div class="flex justify-between items-center">
                         <dt class="text-gray-600">مشتری</dt>

@@ -10,7 +10,7 @@
         </a>
     </div>
 
-    <form action="{{ route('admin.blog-categories.store') }}" method="POST">
+    <form action="{{ route('admin.blog-categories.store') }}" method="POST" enctype="multipart/form-data">
         @include('admin.blog-categories._form')
     </form>
 </div>

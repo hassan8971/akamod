@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Http\Resources\Api\CategoryResource;
+use App\Http\Resources\Api\ProductResource;
 
 class CategoryController extends Controller
 {
@@ -21,7 +23,7 @@ class CategoryController extends Controller
                                 ->orderBy('name', 'asc')
                                 ->get();
 
-        return $categories;
+        return CategoryResource::collection($categories);
     }
 
     /**
@@ -48,8 +50,8 @@ class CategoryController extends Controller
 
         // Return both the category info and the paginated products
         return response()->json([
-            'category' => $category,
-            'products' => $products,
+            'category' => new CategoryResource($category),
+            'products' => ProductResource::collection($products),
         ]);
     }
 }

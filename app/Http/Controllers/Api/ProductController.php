@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Http\Resources\Api\ProductResource;
 
 class ProductController extends Controller
 {
@@ -19,7 +20,7 @@ class ProductController extends Controller
                             ->paginate(15);
 
         // Return as JSON
-        return $products;
+        return ProductResource::collection($products);
     }
 
     /**
@@ -38,7 +39,7 @@ class ProductController extends Controller
                                 'approvedReviews.user'
                             ])
                             ->firstOrFail(); // 404 if not found
-        return $product;
+        return new ProductResource($product);
     }
 
     public function search(Request $request)
@@ -64,7 +65,7 @@ class ProductController extends Controller
             ->paginate(15)
             ->withQueryString(); // keep the 'q' in pages
 
-        return $products;
+        return ProductResource::collection($products);
     }
 
 }
