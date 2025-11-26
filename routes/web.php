@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\BuySourceController;
 use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\BlogCategoryController;
 use App\Http\Controllers\Admin\PostController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProductReviewController;
@@ -100,6 +101,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('colors', ColorController::class)->except(['show']);
         Route::resource('buy-sources', BuySourceController::class)->except(['show']);
         Route::resource('menu-items', MenuItemController::class)->except(['show']);
+        Route::resource('users', UserController::class)->only(['index', 'show']);
 
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');

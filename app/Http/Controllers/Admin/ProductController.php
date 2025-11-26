@@ -22,10 +22,36 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with(['category', 'admin'])->latest()->paginate(20);
-        return view('admin.products.index', compact('products'));
+        // ۱. دریافت همه‌ی دسته‌بندی‌ها برای فیلتر
+        $categories = Category::orderBy('name')->get();
+        $selectedCategory = null;
+
+        // ۲. شروع ساخت کوئری محصولات
+        $query = Product::with(['category', 'admin']);
+
+        // ۳. اعمال فیلتر در صورت وجود
+        if ($request->filled('category_id')) {
+            $categoryId = $request->input('category_id');
+            $query->where('category_id', $categoryId);
+            $selectedCategory = $categories->find($categoryId);
+        }
+
+        // ۴. دریافت تعداد محصولات (فیلتر شده یا کل)
+        $productCount = $query->count();
+
+        // ۵. دریافت نتایج نهایی با صفحه‌بندی
+        $products = $query->latest()
+                          ->paginate(20)
+                          ->withQueryString(); // <-- حفظ پارامترها در صفحه‌بندی
+
+        return view('admin.products.index', compact(
+            'products',
+            'categories',       // برای فیلتر
+            'productCount',     // برای نمایش تعداد
+            'selectedCategory'  // برای نمایش عنوان فیلتر
+        ));
     }
 
     /**

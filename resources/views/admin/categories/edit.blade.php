@@ -10,17 +10,12 @@
         </a>
     </div>
 
-    <!-- 
-      - We must add enctype for file uploads.
-      - We must add @method('PUT') for updates.
-    -->
-    <form action="{{ route('admin.categories.update', $category) }}" method="POST" enctype="multipart/form-data">
+    <form id="update-form" action="{{ route('admin.categories.update', $category) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6" dir="rtl">
             
-            <!-- Main Content (2/3 width) -->
             <div class="md:col-span-2 bg-white shadow-md rounded-lg p-6 space-y-4">
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700">نام دسته‌بندی</label>
@@ -44,7 +39,6 @@
                 </div>
             </div>
 
-            <!-- Sidebar (1/3 width) -->
             <div class="md:col-span-1 space-y-6">
                 <div class="bg-white shadow-md rounded-lg p-6">
                     <label for="parent_id" class="block text-sm font-medium text-gray-700">دسته‌بندی والد</label>
@@ -87,22 +81,20 @@
             </div>
         </div>
 
-        <!-- Submit Button -->
-        <div class="mt-6 flex justify-between" dir="rtl">
-            <!-- Delete Button (optional) -->
-            <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" onsubmit="return confirm('آیا از حذف این دسته مطمئن هستید؟ فرزندان این دسته نیز حذف خواهند شد.');">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                    حذف دسته
-                </button>
-            </form>
-            
-            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                ذخیره تغییرات
-            </button>
-        </div>
-
     </form>
-@endsection
 
+    <div class="mt-6 flex justify-between" dir="rtl">
+        <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" onsubmit="return confirm('آیا از حذف این دسته مطمئن هستید؟ فرزندان این دسته نیز حذف خواهند شد.');">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                حذف دسته
+            </button>
+        </form>
+        
+        <button type="submit" form="update-form" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            ذخیره تغییرات
+        </button>
+    </div>
+
+@endsection
