@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Resources\Api;
+namespace App\Http\Resources\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Resources\Api\UserResource;
-use App\Http\Resources\Api\BlogCategoryResource;
+use App\Http\Resources\Api\v1\UserResource;
+use App\Http\Resources\Api\v1\BlogCategoryResource;
 
 class PostResource extends JsonResource
 {

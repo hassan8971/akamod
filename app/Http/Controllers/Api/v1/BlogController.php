@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Models\BlogCategory;
 use App\Models\Post;
 use Illuminate\Http\Request;
-use App\Http\Resources\Api\PostResource;
-use App\Http\Resources\Api\BlogCategoryResource;
+use App\Http\Resources\Api\v1\PostResource;
+use App\Http\Resources\Api\v1\BlogCategoryResource;
 
 class BlogController extends Controller
 {

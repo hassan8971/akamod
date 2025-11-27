@@ -2,14 +2,22 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\ProductController;
-use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ProductReviewController;
-use App\Http\Controllers\Api\user\UserPanelController;
-use App\Http\Controllers\Api\CheckoutController;
-use App\Http\Controllers\Api\MenuController;
-use App\Http\Controllers\Api\BlogController;
+use App\Http\Controllers\Api\v1\ProductController;
+use App\Http\Controllers\Api\v1\CategoryController;
+use App\Http\Controllers\Api\v1\AuthController;
+use App\Http\Controllers\Api\v1\ProductReviewController;
+use App\Http\Controllers\Api\v1\user\UserPanelController;
+use App\Http\Controllers\Api\v1\CheckoutController;
+use App\Http\Controllers\Api\v1\MenuController;
+use App\Http\Controllers\Api\v1\BlogController;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes (Version 1)
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1')->group(function () {
 
 
 Route::get('/products', [ProductController::class, 'index']);
@@ -52,5 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('products/{product}/reviews', [ProductReviewController::class, 'store']);
 
     Route::post('checkout', [CheckoutController::class, 'store']);
+
+});
 
 });

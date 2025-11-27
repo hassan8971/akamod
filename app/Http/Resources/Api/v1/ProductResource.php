@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Http\Resources\Api;
+namespace App\Http\Resources\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 // Import other resources we will use
-use App\Http\Resources\Api\CategoryResource;
-use App\Http\Resources\Api\ProductVariantResource;
-use App\Http\Resources\Api\ProductImageResource;
-use App\Http\Resources\Api\VideoResource;
-use App\Http\Resources\Api\UserResource;
+use App\Http\Resources\Api\v1\CategoryResource;
+use App\Http\Resources\Api\v1\ProductVariantResource;
+use App\Http\Resources\Api\v1\ProductImageResource;
+use App\Http\Resources\Api\v1\VideoResource;
+use App\Http\Resources\Api\v1\UserResource;
 
 
 class ProductResource extends JsonResource
