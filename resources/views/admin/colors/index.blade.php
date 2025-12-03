@@ -27,6 +27,7 @@
                 <tr>
                     <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold uppercase">رنگ</th>
                     <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold uppercase">نام رنگ</th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold uppercase">نام فارسی</th>
                     <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold uppercase">کد هگز (Hex)</th>
                     <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100"></th>
                 </tr>
@@ -39,6 +40,7 @@
                               style="background-color: {{ $color->hex_code }}"></span>
                     </td>
                     <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{ $color->name }}</td>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">{{ $color->persian_name ?? '---' }}</td>
                     <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" dir="ltr">{{ $color->hex_code }}</td>
                     <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-left">
                         <a href="{{ route('admin.colors.edit', $color) }}" class="text-blue-600 hover:text-blue-900 ml-4">ویرایش</a>

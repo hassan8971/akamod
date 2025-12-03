@@ -25,6 +25,7 @@ class ColorController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:colors,name',
+            'persian_name' => 'nullable|string|max:100',
             'hex_code' => 'required|string|size:7|starts_with:#|unique:colors,hex_code',
         ], [
             'hex_code.size' => 'کد رنگ باید 7 کاراکتر باشد (مثلا #FF0000)',
@@ -49,6 +50,7 @@ class ColorController extends Controller
                 'max:100',
                 Rule::unique('colors')->ignore($color->id),
             ],
+            'persian_name' => 'nullable|string|max:100',
             'hex_code' => [
                 'required',
                 'string',

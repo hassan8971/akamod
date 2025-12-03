@@ -35,7 +35,8 @@ class ProductController extends Controller
                                 'variants.buySource',
                                 'images', 
                                 'videos', 
-                                'relatedProducts',
+                                'relatedProducts.images',   
+                                'relatedProducts.variants',
                                 'approvedReviews.user'
                             ])
                             ->firstOrFail(); // 404 if not found

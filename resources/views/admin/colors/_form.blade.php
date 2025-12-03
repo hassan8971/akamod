@@ -6,6 +6,14 @@
         <input type="text" name="name" id="name" value="{{ old('name', $color->name) }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="مثال: قرمز تیره" required>
         @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
     </div>
+
+    <div>
+        <label for="persian_name" class="block text-sm font-medium text-gray-700">نام رنگ (فارسی)</label>
+        <input type="text" name="persian_name" id="persian_name" value="{{ old('persian_name', $color->persian_name) }}" 
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
+                placeholder="مثال: قرمز تیره">
+        @error('persian_name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+    </div>
     
     <div>
         <label for="hex_code" class="block text-sm font-medium text-gray-700">کد رنگ (Hex)</label>

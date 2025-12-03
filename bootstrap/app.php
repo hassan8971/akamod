@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
         $middleware->trustProxies(at: '*');
+        $middleware->append(\App\Http\Middleware\NoIndex::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

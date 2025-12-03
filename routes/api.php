@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\v1\user\UserPanelController;
 use App\Http\Controllers\Api\v1\CheckoutController;
 use App\Http\Controllers\Api\v1\MenuController;
 use App\Http\Controllers\Api\v1\BlogController;
+use App\Http\Controllers\Api\v1\CartController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +33,8 @@ Route::get('/menus', [MenuController::class, 'index']);
 Route::get('blog/posts', [BlogController::class, 'index']);
 Route::get('blog/posts/{slug}', [BlogController::class, 'show']);
 Route::get('blog/categories', [BlogController::class, 'categories']);
+
+Route::post('/cart/check-discount', [CartController::class, 'checkDiscount']);
 
 // این مسیر پیش‌فرض لاراول برای احراز هویت با Sanctum است
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

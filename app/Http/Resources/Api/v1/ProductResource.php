@@ -10,6 +10,7 @@ use App\Http\Resources\Api\v1\ProductVariantResource;
 use App\Http\Resources\Api\v1\ProductImageResource;
 use App\Http\Resources\Api\v1\VideoResource;
 use App\Http\Resources\Api\v1\UserResource;
+use App\Http\Resources\Api\v1\ProductListResource;
 
 
 class ProductResource extends JsonResource
@@ -40,9 +41,7 @@ class ProductResource extends JsonResource
             'videos' => VideoResource::collection($this->whenLoaded('videos')),
             'variants' => ProductVariantResource::collection($this->whenLoaded('variants')),
             
-            // For related products, we can re-use the ProductResource,
-            // but we might want a simpler version later (e.g., 'RelatedProductResource')
-            'related_products' => ProductResource::collection($this->whenLoaded('relatedProducts')),
+            'related_products' => ProductListResource::collection($this->whenLoaded('relatedProducts')),
             
             // Include average rating
             'average_rating' => $this->averageRating(),
