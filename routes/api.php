@@ -36,6 +36,7 @@ Route::get('blog/categories', [BlogController::class, 'categories']);
 
 Route::post('/cart/check-discount', [CartController::class, 'checkDiscount']);
 
+
 // این مسیر پیش‌فرض لاراول برای احراز هویت با Sanctum است
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

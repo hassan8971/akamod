@@ -21,13 +21,16 @@ use App\Http\Controllers\Admin\VideoController;
 use App\Http\Controllers\Auth\LoginController as UserLoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\OtpLoginController;
+use App\Http\Controllers\CheckoutController;
 
 Route::get('/', function () {
     return "access denied";
 })->name('home');
 
 
-
+Route::prefix('checkout')->name('checkout.')->middleware('auth')->group(function () {
+    Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
+});
 
 // Admin Login
 Route::post('admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
