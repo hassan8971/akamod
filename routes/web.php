@@ -28,7 +28,7 @@ Route::get('/', function () {
 })->name('home');
 
 
-Route::prefix('checkout')->name('checkout.')->middleware('auth')->group(function () {
+Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
 });
 

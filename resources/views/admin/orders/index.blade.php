@@ -30,7 +30,7 @@
                             #{{ $order->id }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                            {{ $order->user->name ?? 'مهمان' }}
+                            <a href="{{route('admin.users.show', $order->user) }}">{{ $order->user->name ?? 'مهمان' }}</a>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                             <p>تاریخ سفارش: {{ jdate($order->created_at)->format('Y/m/d') }}</p>
@@ -44,14 +44,14 @@
                                     @case('pending') bg-yellow-100 text-yellow-800 @break
                                     @case('processing') bg-blue-100 text-blue-800 @break
                                     @case('shipped') bg-green-100 text-green-800 @break
-                                    @case('delivered') bg-green-200 text-green-900 @break
+                                    @case('completed') bg-green-200 text-green-900 @break
                                     @case('cancelled') bg-red-100 text-red-800 @break
                                 @endswitch">
                                 @switch($order->status)
                                     @case('pending') در انتظار @break
                                     @case('processing') در حال پردازش @break
                                     @case('shipped') ارسال شده @break
-                                    @case('delivered') تحویل شده @break
+                                    @case('completed') تحویل شده @break
                                     @case('cancelled') لغو شده @break
                                     @default {{ ucfirst($order->status) }}
                                 @endswitch

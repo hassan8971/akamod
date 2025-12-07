@@ -121,16 +121,13 @@
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">شماره تماس:</p>
-                                <p class="font-medium" dir="ltr">{{ $order->address->phone }}</p>
+                                <p class="font-medium" dir="rtl">{{ $order->address->phone }}</p>
                             </div>
                         </div>
                         <div class="mt-4 pt-4 border-t">
                             <p class="text-sm text-gray-500">آدرس کامل:</p>
                             <p>{{ $order->address->state }}، {{ $order->address->city }}</p>
-                            <p>{{ $order->address->address_line_1 }}</p>
-                            @if ($order->address->address_line_2)
-                                <p>{{ $order->address->address_line_2 }}</p>
-                            @endif
+                            <p>{{ $order->address->address }}</p>
                             <p>کد پستی: <span dir="ltr">{{ $order->address->zip_code }}</span></p>
                         </div>
                     </div>

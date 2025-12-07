@@ -5,7 +5,9 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],  // برای تست؛ در تولید محدود کنید
+    'allowed_origins' => [
+        env('FRONTEND_URL', 'https://localhost:8000',),
+    ],
 
     'allowed_origins_patterns' => [],
 

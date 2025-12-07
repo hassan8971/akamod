@@ -12,7 +12,7 @@
         <p class="text-gray-500">یک ایمیل تاییدیه برای شما ارسال شد (در صورت ارائه ایمیل).</p>
         
         <div class="mt-8">
-            <a href="{{ route('shop.index') }}" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">
+            <a href="#" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">
                 ادامه خرید
             </a>
             <!-- Later, add a link to their order history -->

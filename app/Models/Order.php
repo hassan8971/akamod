@@ -45,7 +45,7 @@ class Order extends Model
     {
         // This assumes your foreign key in the 'orders' table
         // is 'address_id'
-        return $this->belongsTo(Address::class);
+        return $this->belongsTo(Address::class, 'shipping_address_id');
     }
 
     public function packagingOption(): BelongsTo
