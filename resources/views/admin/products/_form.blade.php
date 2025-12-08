@@ -17,6 +17,18 @@
             <input type="text" name="name" id="name" value="{{ old('name', $product->name ?? '') }}" 
                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-right" required>
         </div>
+
+        <div>
+            <label for="slug" class="block text-sm font-medium text-gray-700">اسلاگ (URL)</label>
+            <input type="text" 
+                   name="slug" 
+                   id="slug" 
+                   value="{{ old('slug', $product->slug ?? '') }}" 
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-600" 
+                   placeholder="auto-generated-slug"
+                   dir="ltr">
+            <p class="text-xs text-gray-500 mt-1">در صورت خالی گذاشتن، به طور خودکار از روی نام محصول ساخته می‌شود.</p>
+        </div>
         
         <div>
             <label for="description" class="block text-sm font-medium text-gray-700 text-right">توضیحات</label>
