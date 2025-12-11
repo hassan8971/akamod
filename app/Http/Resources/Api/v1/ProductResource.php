@@ -11,6 +11,7 @@ use App\Http\Resources\Api\v1\ProductImageResource;
 use App\Http\Resources\Api\v1\VideoResource;
 use App\Http\Resources\Api\v1\UserResource;
 use App\Http\Resources\Api\v1\ProductListResource;
+use App\Http\Resources\Api\v1\ProductReviewResource;
 
 
 class ProductResource extends JsonResource
@@ -46,6 +47,8 @@ class ProductResource extends JsonResource
             // Include average rating
             'average_rating' => $this->averageRating(),
             'reviews_count' => $this->approvedReviewsCount(),
+
+            'reviews' => ProductReviewResource::collection($this->whenLoaded('approvedReviews')),
             
             'created_at' => $this->created_at,
         ];

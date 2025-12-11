@@ -28,7 +28,7 @@ class ProductReview extends Model
     /**
      * Get the user who wrote the review.
      */
-    public function user(): BelongsTo
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
@@ -52,8 +52,9 @@ class ProductReview extends Model
     /**
      * Get all replies for this comment.
      */
-    public function replies(): HasMany
+    public function replies()
     {
-        return $this->hasMany(ProductReview::class, 'parent_id')->latest(); // نمایش جدیدترین پاسخ‌ها در بالا
+        return $this->hasMany(ProductReview::class, 'parent_id')
+                    ->where('is_approved', '1'); // فقط پاسخ‌های تایید شده
     }
 }

@@ -4,16 +4,21 @@ namespace App\Http\Resources\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'image_path' => $this->image_path ? Storage::url($this->image_path) : null,
+            
+            // اگر فرزندان لود شده باشند، آن‌ها را هم نشان بده (فقط سطح ۱)
+            'children' => CategoryResource::collection($this->whenLoaded('children')),
+        ];
     }
 }

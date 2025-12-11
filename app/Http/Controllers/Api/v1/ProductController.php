@@ -37,7 +37,11 @@ class ProductController extends Controller
                                 'videos', 
                                 'relatedProducts.images',   
                                 'relatedProducts.variants',
-                                'approvedReviews.user'
+                                'approvedReviews' => function ($query) {
+                                    $query->whereNull('parent_id') // فقط نظرات اصلی
+                                        ->orderBy('created_at', 'desc') // جدیدترین اول
+                                        ->with(['user', 'replies.user']); // لود کردن کاربر و پاسخ‌ها
+                                }
                             ])
                             ->firstOrFail(); // 404 if not found
         return new ProductResource($product);

@@ -58,7 +58,14 @@ class Category extends Model
      */
     public function children(): HasMany
     {
-        return $this->hasMany(Category::class, 'parent_id');
+        return $this->hasMany(Category::class, 'parent_id')->with('children');
+    }
+
+    // This makes sure a category can have unlimited sub-category levels
+
+    public function descendants()
+    {
+        return $this->children()->with('descendants');
     }
 }
 

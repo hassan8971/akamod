@@ -22,7 +22,7 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-500">موبایل:</span>
-                        <span class="font-medium" dir="ltr">{{ $user->mobile_number }}</span>
+                        <span class="font-medium" dir="ltr">{{ $user->mobile }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-500">ایمیل:</span>
