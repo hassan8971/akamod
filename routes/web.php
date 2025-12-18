@@ -32,6 +32,7 @@ Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
 });
 
+Route::domain('dashboard.akamode.com')->group(function () {
 // Admin Login
 Route::post('admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
 
@@ -103,4 +104,6 @@ Route::middleware('guest')->group(function () {
     Route::get('login/verify', [OtpLoginController::class, 'showVerifyForm'])->name('otp.verify.form');
     // Step 2: Handle code submission
     Route::post('login/verify', [OtpLoginController::class, 'verifyOtp'])->name('otp.verify');
+});
+  
 });
