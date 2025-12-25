@@ -24,7 +24,7 @@ use App\Http\Controllers\Auth\OtpLoginController;
 use App\Http\Controllers\CheckoutController;
 
 Route::get('/', function () {
-    return "access denied";
+    return redirect()->route('login');
 })->name('home');
 
 
