@@ -197,13 +197,52 @@
 
         <!-- Add New Variant Form -->
         <hr class="my-6">
-        <h3 class="text-lg font-medium mb-2">افزودن متغیر جدید</h3>
-        <form action="{{ route('admin.products.variants.store', $product) }}" method="POST">
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="text-lg font-medium">افزودن متغیر جدید</h3>
+            <button type="button" onclick="window.dispatchEvent(new CustomEvent('clear-variant-form'))" 
+                    class="text-xs text-gray-500 hover:text-red-500 underline">
+                پاک کردن فرم
+            </button>
+        </div>
+
+        <form action="{{ route('admin.products.variants.store', $product) }}" method="POST"
+              x-data="{
+                  // 1. تعریف متغیرها با اولویت: 1. مقدار خطا (old) 2. حافظه مرورگر 3. خالی
+                  size: '{{ old('size') }}' || localStorage.getItem('v_size_{{ $product->id }}') || '',
+                  color: '{{ old('color') }}' || localStorage.getItem('v_color_{{ $product->id }}') || '',
+                  price: '{{ old('price') }}' || localStorage.getItem('v_price_{{ $product->id }}') || '',
+                  discount_price: '{{ old('discount_price') }}' || localStorage.getItem('v_discount_{{ $product->id }}') || '',
+                  buy_price: '{{ old('buy_price') }}' || localStorage.getItem('v_buy_{{ $product->id }}') || '',
+                  stock: '{{ old('stock') }}' || localStorage.getItem('v_stock_{{ $product->id }}') || '',
+                  buy_source_id: '{{ old('buy_source_id') }}' || localStorage.getItem('v_source_{{ $product->id }}') || '',
+
+                  init() {
+                      // 2. هر تغییری دادی، سریع تو حافظه ذخیره کن
+                      this.$watch('size', val => localStorage.setItem('v_size_{{ $product->id }}', val));
+                      this.$watch('color', val => localStorage.setItem('v_color_{{ $product->id }}', val));
+                      this.$watch('price', val => localStorage.setItem('v_price_{{ $product->id }}', val));
+                      this.$watch('discount_price', val => localStorage.setItem('v_discount_{{ $product->id }}', val));
+                      this.$watch('buy_price', val => localStorage.setItem('v_buy_{{ $product->id }}', val));
+                      this.$watch('stock', val => localStorage.setItem('v_stock_{{ $product->id }}', val));
+                      this.$watch('buy_source_id', val => localStorage.setItem('v_source_{{ $product->id }}', val));
+
+                      // شنیدن رویداد پاکسازی
+                      window.addEventListener('clear-variant-form', () => {
+                          this.size = ''; this.color = ''; this.price = ''; 
+                          this.discount_price = ''; this.buy_price = ''; 
+                          this.stock = ''; this.buy_source_id = '';
+                          // پاک کردن از حافظه
+                          const keys = ['size', 'color', 'price', 'discount', 'buy', 'stock', 'source'];
+                          keys.forEach(k => localStorage.removeItem('v_' + k + '_{{ $product->id }}'));
+                      });
+                  }
+              }"
+        >
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div>
                     <label for="variant_size" class="block text-sm font-medium text-gray-700">سایز</label>
-                    <select name="size" id="variant_size"
+                    <select name="size" id="variant_size" x-model="size"
                             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
                         <option value="">انتخاب کنید...</option>
                         @foreach ($sizes as $size)
@@ -213,50 +252,50 @@
                 </div>
                 <div>
                     <label for="variant_color" class="block text-sm font-medium text-gray-700">رنگ</label>
-                    <select name="color" id="color"
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
-                <option value="">انتخاب کنید...</option>
-                @foreach ($colors as $color)
-                    <option value="{{ $color->name }}" @selected(old('color') == $color->name)>
-                        {{ $color->name }}
-                    </option>
-                @endforeach
-            </select>
+                    <select name="color" id="color" x-model="color"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        <option value="">انتخاب کنید...</option>
+                        @foreach ($colors as $color)
+                            <option value="{{ $color->name }}">
+                                {{ $color->name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <label for="variant_price" class="block text-sm font-medium text-gray-700">قیمت (تومان)</label>
-                    <input type="number" name="price" id="variant_price" placeholder="مثال: 50000"
+                    <input type="number" name="price" id="variant_price" x-model="price" placeholder="مثال: 50000"
                            step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
                 </div>
                 <div>
                     <label for="discount_price" class="block text-sm font-medium text-gray-700">قیمت با تخفیف (تومان)</label>
-                    <input type="number" name="discount_price" value="{{ old('discount_price') }}" id="discount_price" placeholder="مثال: 50000"
+                    <input type="number" name="discount_price" id="discount_price" x-model="discount_price" placeholder="مثال: 50000"
                            step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
                         @if(isset($avg_sale_price) && $avg_sale_price > 0)
                         <p class="mt-1 text-xs text-red-600">
                             (میانگین فروش: {{ number_format($avg_sale_price) }} تومان)
                         </p>
                         @endif
-                        </div>
+                </div>
                 <div>
                     <label for="buy_price" class="block text-sm font-medium text-gray-700">قیمت خرید</label>
-                    <input type="number" name="buy_price" value="{{ old('buy_price') }}" id="buy_price" placeholder="مثال: 50000"
+                    <input type="number" name="buy_price" id="buy_price" x-model="buy_price" placeholder="مثال: 50000"
                            step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
                     @if(isset($avg_buy_price) && $avg_buy_price > 0)
                         <p class="mt-1 text-xs text-red-600">
                             (میانگین خرید: {{ number_format($avg_buy_price) }} تومان)
                         </p>
                     @endif
-                    </div>
+                </div>
                 <div>
                     <label for="variant_stock" class="block text-sm font-medium text-gray-700">موجودی انبار</label>
-                    <input type="number" name="stock" id="variant_stock" placeholder="مثال: 100"
+                    <input type="number" name="stock" id="variant_stock" x-model="stock" placeholder="مثال: 100"
                            min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
                 </div>
                 <div>
                     <label for="buy_source" class="block text-sm font-medium text-gray-700">سورس خرید</label>
-                    <select name="buy_source_id" id="buy_source"
-                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    <select name="buy_source_id" id="buy_source" x-model="buy_source_id"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
                         <option value="">انتخاب کنید...</option>
                         @foreach ($buySources as $source)
                             <option value="{{ $source->id }}">{{ $source->name }}</option>
