@@ -205,7 +205,7 @@
             </button>
         </div>
 
-        <form action="{{ route('admin.products.variants.store', $product) }}" method="POST"
+        <form action="{{ route('admin.products.variants.store', $product) }}" method="POST" id="add-variant-form"
               x-data="{
                   // 1. تعریف متغیرها با اولویت: 1. مقدار خطا (old) 2. حافظه مرورگر 3. خالی
                   size: '{{ old('size') }}' || localStorage.getItem('v_size_{{ $product->id }}') || '',
@@ -555,3 +555,41 @@
 
     
     @endsection
+
+@push('scripts')
+<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const scrollKey = 'scroll_pos_' + window.location.pathname;
+            const savedPosition = localStorage.getItem(scrollKey);
+
+            // 1. Check if we need to scroll to the Variant Form
+            if (savedPosition === 'variant_form') {
+                const formElement = document.getElementById('add-variant-form');
+                if (formElement) {
+                    // Scrolls the form into the center of the view
+                    formElement.scrollIntoView({ behavior: 'auto', block: 'center' });
+                }
+                localStorage.removeItem(scrollKey);
+            } 
+            // 2. Otherwise, restore the exact pixel position (for other forms)
+            else if (savedPosition) {
+                window.scrollTo(0, parseInt(savedPosition));
+                localStorage.removeItem(scrollKey);
+            }
+
+            // 3. Listen for submits
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function() {
+                    // Check if this is the "Add Variant" form (by ID)
+                    if (this.id === 'add-variant-form') {
+                        // Save a special flag
+                        localStorage.setItem(scrollKey, 'variant_form');
+                    } else {
+                        // For all other forms, save exact pixel position
+                        localStorage.setItem(scrollKey, window.scrollY);
+                    }
+                });
+            });
+        });
+    </script>
+@endpush
