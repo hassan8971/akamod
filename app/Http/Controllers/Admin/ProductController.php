@@ -116,7 +116,7 @@ class ProductController extends Controller
             'is_visible' => 'boolean',
             'is_for_men' => 'boolean',
             'is_for_women' => 'boolean',
-
+            
             // Variants Validation (بر اساس فرم شما)
             'variants' => 'nullable|array',
             'variants.*.size' => 'required|string|max:255',
@@ -253,6 +253,7 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'hover_image_id' => 'nullable|exists:product_images,id',
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
             'care_and_maintenance' => 'nullable|string',
@@ -271,6 +272,8 @@ class ProductController extends Controller
             'is_for_women' => 'boolean',
             'related_product_ids' => 'nullable|array',
             'related_product_ids.*' => 'exists:products,id',
+
+            
             
             // --- FIX: Add validation for selected video IDs ---
             'video_ids' => 'nullable|array',

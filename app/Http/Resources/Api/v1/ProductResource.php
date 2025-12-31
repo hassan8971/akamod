@@ -12,6 +12,7 @@ use App\Http\Resources\Api\v1\VideoResource;
 use App\Http\Resources\Api\v1\UserResource;
 use App\Http\Resources\Api\v1\ProductListResource;
 use App\Http\Resources\Api\v1\ProductReviewResource;
+use Illuminate\Support\Facades\Storage;
 
 
 class ProductResource extends JsonResource
@@ -39,6 +40,7 @@ class ProductResource extends JsonResource
             'category' => new CategoryResource($this->whenLoaded('category')),
             
             'images' => ProductImageResource::collection($this->whenLoaded('images')),
+            'hover_image' => $this->hoverImage ? Storage::url($this->hoverImage->path) : null,
             'videos' => VideoResource::collection($this->whenLoaded('videos')),
             'variants' => ProductVariantResource::collection($this->whenLoaded('variants')),
             

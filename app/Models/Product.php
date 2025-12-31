@@ -24,6 +24,7 @@ class Product extends Model
         'is_for_men',
         'is_for_women',
         'admin_id',
+        'hover_image_id',
     ];
 
     protected function casts(): array
@@ -119,5 +120,10 @@ class Product extends Model
     public function approvedReviewsCount(): int
     {
         return $this->approvedReviews()->count();
+    }
+
+    public function hoverImage()
+    {
+        return $this->belongsTo(ProductImage::class, 'hover_image_id');
     }
 }

@@ -364,6 +364,126 @@
         </form>
     </div>
 
+    <!-- Hover image start -->
+
+    <div class="bg-white shadow-md rounded-lg p-6 mb-8" dir="rtl"
+     x-data="{
+        isOpen: false,
+        // Get the initial ID and URL from the server-side product object
+        selectedId: '{{ $product->hover_image_id }}',
+        selectedUrl: '{{ $product->hoverImage ? Storage::url($product->hoverImage->path) : '' }}',
+
+        openModal() {
+            this.isOpen = true;
+            // Lock body scroll
+            document.body.style.overflow = 'hidden';
+        },
+
+        closeModal() {
+            this.isOpen = false;
+            // Unlock body scroll
+            document.body.style.overflow = 'auto';
+        },
+
+        selectImage(id, url) {
+            this.selectedId = id;
+            this.selectedUrl = url;
+            this.closeModal();
+        },
+
+        removeHoverImage() {
+            this.selectedId = '';
+            this.selectedUrl = '';
+        }
+     }">
+
+        <h2 class="text-xl font-semibold mb-4">تصویر هاور (Hover Image)</h2>
+        <p class="text-sm text-gray-500 mb-4">
+            تصویری را انتخاب کنید که وقتی کاربر موس را روی محصول نگه می‌دارد نمایش داده شود.
+            (از بین تصاویر آپلود شده انتخاب کنید)
+        </p>
+
+        <input type="hidden" name="hover_image_id" :value="selectedId" form="product-update-form">
+
+        <div class="flex items-start gap-6">
+            <div class="relative group cursor-pointer border-2 border-dashed border-gray-300 rounded-lg w-48 h-64 flex items-center justify-center hover:border-blue-500 transition overflow-hidden bg-gray-50"
+                @click="openModal">
+                
+                <template x-if="selectedUrl">
+                    <img :src="selectedUrl" class="w-full h-full object-cover">
+                </template>
+
+                <template x-if="!selectedUrl">
+                    <div class="text-center p-4">
+                        <svg class="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span class="mt-2 block text-sm font-medium text-gray-600">انتخاب تصویر</span>
+                    </div>
+                </template>
+
+                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition flex items-center justify-center">
+                    <span class="text-white font-bold opacity-0 group-hover:opacity-100">تغییر</span>
+                </div>
+            </div>
+
+            <button type="button" x-show="selectedUrl" @click="removeHoverImage" class="text-red-500 text-sm hover:underline mt-2">
+                حذف تصویر هاور
+            </button>
+        </div>
+
+        <div x-show="isOpen" 
+            style="display: none;"
+            x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm p-4">
+            
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden"
+                @click.away="closeModal">
+                
+                <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                    <h3 class="text-lg font-bold text-gray-800">انتخاب تصویر از گالری محصول</h3>
+                    <button @click="closeModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                </div>
+
+                <div class="p-6 overflow-y-auto bg-gray-100 flex-1">
+                    @if($product->images->isEmpty())
+                        <div class="text-center text-gray-500 py-10">
+                            هیچ تصویری برای این محصول آپلود نشده است. ابتدا تصویر آپلود کنید.
+                        </div>
+                    @else
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            @foreach($product->images as $img)
+                                <div class="group relative cursor-pointer border-4 rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition transform hover:scale-105"
+                                    :class="selectedId == '{{ $img->id }}' ? 'border-blue-600 ring-2 ring-blue-300' : 'border-transparent bg-white'"
+                                    @click="selectImage('{{ $img->id }}', '{{ Storage::url($img->path) }}')">
+                                    
+                                    <img src="{{ Storage::url($img->path) }}" loading="lazy" class="w-full h-48 object-contain bg-gray-50">
+                                    
+                                    <div class="absolute top-2 right-2 bg-blue-600 text-white rounded-full p-1"
+                                        x-show="selectedId == '{{ $img->id }}'">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+
+                                    <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 text-center opacity-0 group-hover:opacity-100 transition">
+                                        انتخاب این تصویر
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <div class="p-4 border-t bg-gray-50 text-right">
+                    <button type="button" @click="closeModal" class="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                        انصراف
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hover image end -->
+
     <!-- Add videos Start -->
 
     <div class="bg-white shadow-md rounded-lg p-6" 
