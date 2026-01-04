@@ -11,8 +11,10 @@ class ProductListResource extends JsonResource
     public function toArray(Request $request): array
     {
         // 1. Get the first image safely
-        $firstImage = $this->images->first();
+        $firstImage = $this->images->sortBy('order')->first();
         $imageUrl = $firstImage ? Storage::url($firstImage->path) : null;
+
+        $hoverImageUrl = $this->hoverImage ? Storage::url($this->hoverImage->path) : null;
 
         // 2. Get price information (e.g., min price or first variant price)
         $firstVariant = $this->variants->first();
@@ -25,6 +27,7 @@ class ProductListResource extends JsonResource
             'slug' => $this->slug,
             // Manually include the image URL
             'image' => $imageUrl, 
+            'hover_image' => $hoverImageUrl,
             // Manually include price info
             'price' => $price,
             'discount_price' => $discountPrice,

@@ -52,5 +52,19 @@ class ProductImageController extends Controller
         return redirect()->route('admin.products.edit', $product)
             ->with('success', 'Image deleted successfully.');
     }
+
+    public function reorder(Request $request)
+    {
+        $request->validate([
+            'images' => 'required|array',
+        ]);
+
+        foreach ($request->images as $index => $id) {
+            // آپدیت کردن ستون order بر اساس ایندکس آرایه دریافتی
+            \App\Models\ProductImage::where('id', $id)->update(['order' => $index]);
+        }
+
+        return response()->json(['status' => 'success']);
+    }
 }
 

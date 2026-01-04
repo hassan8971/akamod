@@ -39,7 +39,11 @@ class ProductResource extends JsonResource
             'admin' => new UserResource($this->whenLoaded('admin')),
             'category' => new CategoryResource($this->whenLoaded('category')),
             
-            'images' => ProductImageResource::collection($this->whenLoaded('images')),
+            'images' => ProductImageResource::collection(
+                $this->whenLoaded('images', function ($images) {
+                    return $images->sortBy('order')->values(); // values() کلیدها را ریست میکند تا آرایه JSON استاندارد شود
+                })
+            ),
             'hover_image' => $this->hoverImage ? Storage::url($this->hoverImage->path) : null,
             'videos' => VideoResource::collection($this->whenLoaded('videos')),
             'variants' => ProductVariantResource::collection($this->whenLoaded('variants')),

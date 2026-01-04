@@ -13,6 +13,10 @@
 
     </style>
     <link href="{{ asset('css/all.css') }}" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    @stack('styles')
+
 </head>
 <body class="bg-gray-100">
 

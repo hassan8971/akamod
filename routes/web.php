@@ -88,6 +88,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::resource('blog-categories', BlogCategoryController::class)->except(['show']);
         Route::resource('posts', PostController::class);
+
+        Route::post('images/reorder', [ProductImageController::class, 'reorder'])->name('images.reorder');  
     });
 });
 
