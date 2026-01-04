@@ -336,98 +336,125 @@
 
     <!-- Manage Images -->
     <div class="bg-white shadow-md rounded-lg p-6 mb-8" dir="rtl">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">مدیریت تصاویر</h2>
-            <span x-data="{ show: false }" 
-                @order-saved.window="show = true; setTimeout(() => show = false, 2000)"
-                x-show="show" 
-                x-transition
-                class="text-sm font-medium text-green-600 flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                ترتیب ذخیره شد
-            </span>
-        </div>
-
-        <p class="text-sm text-gray-500 mb-6 bg-gray-50 p-3 rounded border border-gray-100">
-            <span class="font-bold text-gray-700">راهنما:</span> 
-            از دکمه‌های فلش (<span class="font-bold text-lg leading-3">&rarr; &larr;</span>) برای تغییر ترتیب تصاویر استفاده کنید.
-        </p>
-
-        <div x-data="imageManager(
-            {{ json_encode($product->images->sortBy('order')->values()->map(function($img) {
-                return [
-                    'id' => $img->id,
-                    'url' => Storage::url($img->path),
-                    'delete_url' => route('admin.images.destroy', $img->id)
-                ];
-            })) }}
-        )">
-            
-            <div x-show="images.length === 0" class="text-center py-10 border-2 border-dashed border-gray-300 rounded-lg">
-                <p class="text-gray-500">هنوز تصویری آپلود نشده است.</p>
-            </div>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
-                <template x-for="(image, index) in images" :key="image.id">
-                    <div class="relative group bg-white border border-gray-200 rounded-lg p-2 shadow-sm hover:shadow-md transition-all">
-                        
-                        <div class="relative h-32 w-full mb-3">
-                            <img :src="image.url" class="w-full h-full object-cover rounded pointer-events-none">
-                            
-                            <div class="absolute top-1 left-1">
-                                <form :action="image.delete_url" method="POST" onsubmit="return confirm('آیا از حذف این تصویر مطمئن هستید؟');">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="bg-red-600 text-white p-1 rounded-full shadow hover:bg-red-700 transition opacity-80 hover:opacity-100">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    </button>
-                                </form>
-                            </div>
-
-                            <div class="absolute top-1 right-1 bg-black bg-opacity-60 text-white text-xs px-2 py-0.5 rounded-full">
-                                <span x-text="index + 1"></span>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between bg-gray-50 rounded p-1 gap-2">
-                            
-                            <button type="button" 
-                                    @click="move(index, -1)" 
-                                    :disabled="index === 0"
-                                    :class="index === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-blue-100 text-blue-600'"
-                                    class="flex-1 flex justify-center items-center py-1 rounded transition bg-white border border-gray-200">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                            </button>
-
-                            <button type="button" 
-                                    @click="move(index, 1)" 
-                                    :disabled="index === images.length - 1"
-                                    :class="index === images.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-blue-100 text-blue-600'"
-                                    class="flex-1 flex justify-center items-center py-1 rounded transition bg-white border border-gray-200">
-                                <svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                            </button>
-                        </div>
-
-                    </div>
-                </template>
-            </div>
-        </div>
-
-        <div class="border-t pt-6">
-            <h3 class="text-lg font-medium mb-4">آپلود تصاویر جدید</h3>
-            <form action="{{ route('admin.products.images.store', $product) }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="flex items-center justify-center w-full">
-                    <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
-                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg class="w-8 h-8 mb-4 text-gray-400" fill="none" viewBox="0 0 20 16"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/></svg>
-                            <p class="text-sm text-gray-500"><span class="font-semibold">برای آپلود کلیک کنید</span></p>
-                        </div>
-                        <input id="dropzone-file" name="images[]" multiple type="file" class="hidden" onchange="this.form.submit()" />
-                    </label>
-                </div>
-            </form>
-        </div>
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">مدیریت گالری (تصویر و ویدیو)</h2>
+        <span x-data="{ show: false }" 
+              @order-saved.window="show = true; setTimeout(() => show = false, 2000)"
+              x-show="show" 
+              x-transition
+              class="text-sm font-medium text-green-600 flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            ترتیب ذخیره شد
+        </span>
     </div>
+
+    <p class="text-sm text-gray-500 mb-6 bg-gray-50 p-3 rounded border border-gray-100">
+        <span class="font-bold text-gray-700">راهنما:</span> 
+        از دکمه‌های فلش (<span class="font-bold text-lg leading-3">&rarr; &larr;</span>) برای تغییر ترتیب استفاده کنید. 
+        <span class="text-blue-600">برای پخش ویدیو روی آن کلیک کنید.</span>
+    </p>
+
+    <div x-data="imageManager(
+        {{ json_encode($product->images->sortBy('order')->values()->map(function($img) {
+            $isVideo = \Illuminate\Support\Str::endsWith(strtolower($img->path), ['.mp4', '.mov', '.avi', '.webm']);
+            return [
+                'id' => $img->id,
+                'url' => Storage::url($img->path),
+                'type' => $isVideo ? 'video' : 'image',
+                'delete_url' => route('admin.images.destroy', $img->id)
+            ];
+        })) }}
+    )">
+        
+        <div x-show="images.length === 0" class="text-center py-10 border-2 border-dashed border-gray-300 rounded-lg">
+            <p class="text-gray-500">هنوز فایلی آپلود نشده است.</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
+            <template x-for="(media, index) in images" :key="media.id">
+                <div class="relative group bg-white border border-gray-200 rounded-lg p-2 shadow-sm hover:shadow-md transition-all">
+                    
+                    <div class="relative h-32 w-full mb-3 bg-gray-100 rounded overflow-hidden">
+                        
+                        <template x-if="media.type === 'image'">
+                            <img :src="media.url" class="w-full h-full object-cover pointer-events-none">
+                        </template>
+
+                        <template x-if="media.type === 'video'">
+                            <div class="w-full h-full relative cursor-pointer group-hover:opacity-90 transition"
+                                 @click="activeVideo = media.url"> <video :src="media.url" class="w-full h-full object-cover pointer-events-none" muted></video>
+                                
+                                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 group-hover:bg-opacity-40 transition">
+                                    <div class="bg-white bg-opacity-90 rounded-full p-2 shadow-lg transform group-hover:scale-110 transition">
+                                        <svg class="w-6 h-6 text-blue-600 pl-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" /></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div class="absolute top-1 left-1 z-20">
+                            <form :action="media.delete_url" method="POST" onsubmit="return confirm('آیا از حذف این فایل مطمئن هستید؟');">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="bg-red-600 text-white p-1 rounded-full shadow hover:bg-red-700 transition opacity-80 hover:opacity-100">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="absolute top-1 right-1 bg-black bg-opacity-60 text-white text-xs px-2 py-0.5 rounded-full z-20 pointer-events-none">
+                            <span x-text="index + 1"></span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between bg-gray-50 rounded p-1 gap-2">
+                        <button type="button" @click="move(index, -1)" :disabled="index === 0" :class="index === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-blue-100 text-blue-600'" class="flex-1 flex justify-center items-center py-1 rounded transition bg-white border border-gray-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                        <button type="button" @click="move(index, 1)" :disabled="index === images.length - 1" :class="index === images.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-blue-100 text-blue-600'" class="flex-1 flex justify-center items-center py-1 rounded transition bg-white border border-gray-200">
+                             <svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+
+                </div>
+            </template>
+        </div>
+
+        <template x-teleport="body">
+                <div x-show="activeVideo" 
+                     x-transition.opacity.duration.300ms
+                     style="display: none;"
+                     class="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm"
+                     @keydown.escape.window="activeVideo = null">
+                    
+                    <button @click="activeVideo = null" class="absolute top-5 right-5 text-white hover:text-gray-300 z-50 p-2">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+
+                    <div class="relative w-full max-w-5xl px-4" @click.outside="activeVideo = null">
+                        <template x-if="activeVideo">
+                            <video :src="activeVideo" controls autoplay class="w-full h-auto max-h-[90vh] rounded-lg shadow-2xl bg-black outline-none"></video>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+    <div class="border-t pt-6">
+        <h3 class="text-lg font-medium mb-4">آپلود فایل جدید (عکس یا ویدیو)</h3>
+        <form action="{{ route('admin.products.images.store', $product) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="flex items-center justify-center w-full">
+                <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg class="w-8 h-8 mb-4 text-gray-400" fill="none" viewBox="0 0 20 16"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/></svg>
+                        <p class="text-sm text-gray-500"><span class="font-semibold">برای آپلود کلیک کنید</span> (JPG, PNG, MP4)</p>
+                    </div>
+                    <input id="dropzone-file" name="images[]" multiple type="file" accept="image/*,video/*" class="hidden" onchange="this.form.submit()" />
+                </label>
+            </div>
+        </form>
+    </div>
+</div>
 
     
 
@@ -513,13 +540,20 @@
                 </div>
 
                 <div class="p-6 overflow-y-auto bg-gray-100 flex-1">
-                    @if($product->images->isEmpty())
+                    @php
+                        // FILTER: Exclude videos from the list
+                        $onlyImages = $product->images->filter(function($img) {
+                            return !\Illuminate\Support\Str::endsWith(strtolower($img->path), ['.mp4', '.mov', '.avi', '.webm']);
+                        });
+                    @endphp
+
+                    @if($onlyImages->isEmpty())
                         <div class="text-center text-gray-500 py-10">
-                            هیچ تصویری برای این محصول آپلود نشده است. ابتدا تصویر آپلود کنید.
+                            هیچ تصویری برای این محصول یافت نشد. (ویدیوها در این بخش نمایش داده نمی‌شوند)
                         </div>
                     @else
                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                            @foreach($product->images as $img)
+                            @foreach($onlyImages as $img)
                                 <div class="group relative cursor-pointer border-4 rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition transform hover:scale-105"
                                     :class="selectedId == '{{ $img->id }}' ? 'border-blue-600 ring-2 ring-blue-300' : 'border-transparent bg-white'"
                                     @click="selectImage('{{ $img->id }}', '{{ Storage::url($img->path) }}')">
@@ -787,6 +821,7 @@
             Alpine.data('imageManager', (initialImages) => ({
                 images: initialImages,
                 isSaving: false,
+                activeVideo: null,
 
                 move(index, direction) {
                     // Calculate new position

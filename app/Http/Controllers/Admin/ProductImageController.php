@@ -17,7 +17,7 @@ class ProductImageController extends Controller
     {
         $request->validate([
             'images' => 'required|array',
-            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048' // Validate each file
+            'images.*' => 'required|mimes:jpg,jpeg,png,webp,mp4,mov,avi,webm|max:51200', // 50MB max per file
         ]);
 
         foreach ($request->file('images') as $file) {
