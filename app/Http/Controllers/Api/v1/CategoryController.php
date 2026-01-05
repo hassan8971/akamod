@@ -55,7 +55,7 @@ class CategoryController extends Controller
         // ۳. دریافت محصولات
         $products = Product::whereIn('category_id', $allCategoryIds)
                              ->where('is_visible', true)
-                             ->with('variants', 'images', 'hoverImage')
+                             ->with(['variants', 'images', 'hoverImage', 'variants.colorData'])
                              ->latest()
                              ->paginate(12)
                              ->withQueryString();

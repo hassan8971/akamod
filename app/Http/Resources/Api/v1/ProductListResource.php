@@ -31,6 +31,26 @@ class ProductListResource extends JsonResource
             // Manually include price info
             'price' => $price,
             'discount_price' => $discountPrice,
+
+            'colors' => $this->variants->map(function ($variant) {
+                // 1. Use colorData instead of color
+                if (!$variant->colorData) return null;
+
+                return [
+                    // 2. Access properties via colorData
+                    'name' => $variant->colorData->name,
+                    'hex'  => $variant->colorData->hex_code
+                ];
+            })
+            ->filter()
+            ->unique('name')
+            ->values(),
+
+        'sizes' => $this->variants->pluck('size')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values(),
             
             // You can still include other fields if needed
             'is_for_men' => $this->is_for_men,

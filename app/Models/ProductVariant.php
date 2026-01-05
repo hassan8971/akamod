@@ -44,4 +44,10 @@ class ProductVariant extends Model
     {
         return $this->belongsTo(BuySource::class);
     }
+
+    public function colorData() 
+    {
+        // The second argument 'color' tells Laravel to look at the 'color' column
+        return $this->belongsTo(Color::class, 'color', 'name');
+    }
 }
