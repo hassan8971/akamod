@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'فروشگاه من')</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://mailfa.com/js/tailwind.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; /* فونت فارسی شما */ }
         /* This is for Alpine.js dropdowns */
         .group:hover .group-hover\:block { display: block; }
     </style>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="http://localhost/alpine/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
 

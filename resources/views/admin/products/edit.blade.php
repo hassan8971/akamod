@@ -24,7 +24,7 @@
 @endpush
 
 @section('content')
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="http://localhost/alpine/dist/cdn.min.js"></script>
 
     <div class="flex justify-between items-center mb-6" dir="rtl">
         <h1 class="text-3xl font-bold">ویرایش محصول: {{ $product->name }}</h1>
@@ -814,7 +814,7 @@
         });
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="http://localhost/sortable.min.js"></script>
 
     <script>
         document.addEventListener('alpine:init', () => {

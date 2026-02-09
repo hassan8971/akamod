@@ -1,0 +1,166 @@
+/* --- iPhone 17 Pro Style Frame --- */
+    .mobile-wrapper {
+        width: 100%;
+        height: 100%;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .mobile-screen {
+        /* این قسمت صفحه نمایش روشن داخل گوشی است */
+        width: 100%;
+        height: 100%;
+        background-color: #f3f4f6; /* رنگ پس‌زمینه محتوا */
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        /* یک سایه داخلی ظریف برای جدا کردن صفحه از حاشیه */
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); 
+    }
+
+
+    /* استاتوس بار جدید (ساعت و آیکون‌ها در گوشه‌ها) */
+    .ios-status-bar {
+        height: 44px;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #000;
+        position: absolute;
+        top: 5px;
+        z-index: 55; /* زیر داینامیک آیلند */
+    }
+
+    /* محتوای اصلی */
+    .mobile-content {
+        flex: 1;
+        overflow-y: auto;
+        padding-bottom: 80px; /* فاصله از بالای تب‌بار */
+        /* مخفی کردن اسکرول بار */
+        scrollbar-width: none; 
+        -ms-overflow-style: none;
+    }
+    .mobile-content::-webkit-scrollbar { display: none; }
+
+
+    /* --- بقیه استایل‌ها (بدون تغییر) --- */
+    .editable-element {
+        position: relative;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.2s;
+    }
+    .editable-element:hover {
+        border-color: #3b82f6;
+    }
+    .editable-element.is-selected {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        z-index: 10;
+    }
+    
+    /* تب‌بار پایین (با کمی اصلاح گوشه‌ها) */
+    .mobile-tab-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 75px; /* کمی بلندتر برای فضای Home Indicator */
+        background: white;
+        border-top: 1px solid #e5e7eb;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        align-items: center;
+        z-index: 50;
+        padding-bottom: 15px; /* فضای خالی پایین برای آیفون‌های جدید */
+        border-bottom-left-radius: 46px; /* هماهنگی با گردی صفحه */
+        border-bottom-right-radius: 46px;
+    }
+    /* خط Home Indicator پایین صفحه */
+    .mobile-tab-bar::after {
+        content: '';
+        position: absolute;
+        bottom: 5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 130px;
+        height: 5px;
+        background: #000;
+        border-radius: 10px;
+        opacity: 0.8;
+    }
+
+    .tab-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        cursor: pointer;
+        color: #9ca3af;
+        transition: all 0.2s;
+        position: relative;
+    }
+    .tab-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    /* استایل‌های انتخاب */
+    .editable-element {
+        position: relative;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.2s;
+    }
+    .editable-element:hover {
+        border-color: #3b82f6;
+    }
+    .editable-element.is-selected {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        z-index: 10;
+    }
+
+
+    
+    .tab-item.is-active {
+        color: #2563eb; /* آبی فعال */
+    }
+    
+    .tab-item:hover {
+        background-color: #f9fafb;
+    }
+
+    .mobile-content::-webkit-scrollbar { width: 4px; }
+    .mobile-content::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 4px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .tooltip{
+        display: none;
+        background: #2663ebb0;
+        color: #fff;
+        border: 1px solid #2663eb;
+        font-size: 13px;
+        padding: 4px;
+        transition: all 0.3s;
+        z-index: 5;
+    }
+
+    .tool-item:hover .tooltip{
+        display: block;
+    }
+
+    #tools-list > div:first-child{
+        margin-top: 7px;
+    }

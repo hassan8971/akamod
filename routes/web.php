@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\Admin\ProductImageController;
 use App\Http\Controllers\Admin\VideoController;
+use App\Http\Controllers\Admin\AppLayoutController;
 use App\Http\Controllers\Auth\LoginController as UserLoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\OtpLoginController;
@@ -90,6 +91,26 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('posts', PostController::class);
 
         Route::post('images/reorder', [ProductImageController::class, 'reorder'])->name('images.reorder');  
+
+        Route::get('layouts', [AppLayoutController::class, 'index'])->name('layouts.index');
+        
+        // صفحه ساز (Drag & Drop Builder) برای یک صفحه خاص
+        Route::get('layouts/{page}/builder', [AppLayoutController::class, 'edit'])->name('layouts.builder');
+        
+        // ذخیره یک سکشن (بخش) جدید
+        Route::post('layouts/{page}/sections', [AppLayoutController::class, 'storeSection'])->name('layouts.section.store');
+        
+        // تغییر ترتیب سکشن‌ها (AJAX)
+        Route::post('layouts/reorder', [AppLayoutController::class, 'reorder'])->name('layouts.reorder');
+        
+        // حذف یک سکشن
+        Route::delete('layouts/sections/{section}', [AppLayoutController::class, 'destroySection'])->name('layouts.section.delete');
+
+        Route::get('layouts/create', [AppLayoutController::class, 'create'])->name('layouts.create');
+        Route::post('layouts', [AppLayoutController::class, 'store'])->name('layouts.store');
+        Route::post('layouts/{page}/save-all', [AppLayoutController::class, 'saveAll'])->name('layouts.save_all');
+        Route::post('layouts/upload-image', [AppLayoutController::class, 'uploadImage'])->name('layouts.upload_image');
+        Route::post('layouts/upload-video', [AppLayoutController::class, 'uploadVideo'])->name('layouts.upload_video');
     });
 });
 

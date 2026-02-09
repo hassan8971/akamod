@@ -3,7 +3,7 @@
 @section('title', 'افزودن محصول جدید')
 
 @section('content')
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script defer src="http://localhost/alpine/dist/cdn.min.js"></script>
 
 <div class="flex justify-between items-center mb-6" dir="rtl">
     <h1 class="text-3xl font-bold">افزودن محصول جدید</h1>

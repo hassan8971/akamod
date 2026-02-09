@@ -1,4 +1,4 @@
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script defer src="http://localhost/alpine/dist/cdn.min.js"></script>
 
 <div class="bg-white shadow-md rounded-lg p-6 space-y-6" x-data="{ hex: '{{ old('hex_code', $color->hex_code) }}' }">
     <div>
