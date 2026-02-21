@@ -152,7 +152,7 @@ class BridgeCategoryController extends Controller
         $imageUrl = null;
         if ($category->image_path) {
             // نکته: پورت 8001 لوکال را مثل محصولات اعمال کنید
-            $imageUrl = 'http://localhost:8001/storage/' . ltrim($category->image_path, '/');
+            $imageUrl = 'https://api.akamode.com/storage/' . ltrim($category->image_path, '/');
         }
 
         $data = [
@@ -167,7 +167,7 @@ class BridgeCategoryController extends Controller
         try {
             Http::withHeaders([
                 'X-Akamode-Secret' => env('WP_AKAMODE_SECRET', 'slafLKlskggslf@34rfkljw')
-            ])->post('http://localhost/wordpress/wp-json/akamode/v1/sync-category', $data);
+            ])->post('https://akamode.com/wp-json/akamode/v1/sync-category', $data);
         } catch (\Exception $e) {
             \Log::error('WP Category Sync Error: ' . $e->getMessage());
         }

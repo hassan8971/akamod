@@ -272,7 +272,7 @@ class BridgeProductController extends Controller
 
         // 2. آماده‌سازی لیست تصاویر با لینک کامل دانلود
         $imageUrls = [];
-        $remoteStorage = 'http://localhost:8001/storage/'; // استفاده از آدرس دقیق لاراول شما
+        $remoteStorage = 'https://api.akamode.com/storage/'; // استفاده از آدرس دقیق لاراول شما
 
         foreach ($product->images as $img) {
             $imageUrls[] = [
@@ -340,7 +340,7 @@ class BridgeProductController extends Controller
         try {
             $response = Http::withHeaders([
                 'X-Akamode-Secret' => env('WP_AKAMODE_SECRET', 'slafLKlskggslf@34rfkljw')
-            ])->post('http://localhost/wordpress/wp-json/akamode/v1/sync-product', $data); // آدرس سایت وردپرسی‌ات
+            ])->post('https://akamode.com/wp-json/akamode/v1/sync-product', $data); // آدرس سایت وردپرسی‌ات
 
             if ($response->failed()) {
                 \Log::error('WP Product Sync Failed: ' . $response->body());
