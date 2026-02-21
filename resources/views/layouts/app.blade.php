@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'فروشگاه من')</title>
-    <script src="https://mailfa.com/js/tailwind.min.js"></script>
+    <script src="{{ asset('js/tailwindcss.js') }}"></script>
     <style>
         body { font-family: 'Inter', sans-serif; /* فونت فارسی شما */ }
         /* This is for Alpine.js dropdowns */

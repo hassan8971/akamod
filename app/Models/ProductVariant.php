@@ -19,7 +19,9 @@ class ProductVariant extends Model
         'buy_price',
         'stock', // How many you have'
         'buy_source_id',
-        'boxing'
+        'boxing',
+        'sku',      // <--- اضافه شد
+        'qr_code'
     ];
 
     protected function casts(): array
@@ -49,5 +51,19 @@ class ProductVariant extends Model
     {
         // The second argument 'color' tells Laravel to look at the 'color' column
         return $this->belongsTo(Color::class, 'color', 'name');
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($variant) {
+            // اگر SKU خالی بود، یک چیز رندوم بساز (اختیاری)
+            if (empty($variant->sku)) {
+                $variant->sku = 'SKU-' . strtoupper(uniqid()); 
+            }
+
+            // تولید QR Code موقت (فعلاً یک رشته متنی ساده)
+            // بعداً می‌توانید اینجا از کتابخانه‌های تولید QR استفاده کنید
+            $variant->qr_code = 'QR-' . $variant->sku . '-' . time(); 
+        });
     }
 }

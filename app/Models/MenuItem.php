@@ -14,6 +14,7 @@ class MenuItem extends Model
     protected $fillable = [
         'name',
         'link_url',
+        'image_path',
         'parent_id',
         'menu_group',
         'order',
@@ -33,5 +34,10 @@ class MenuItem extends Model
     public function children(): HasMany
     {
         return $this->hasMany(MenuItem::class, 'parent_id')->orderBy('order');
+    }
+
+    public function getImageUrlAttribute()
+    {
+        return $this->image_path ? asset('storage/' . $this->image_path) : null;
     }
 }

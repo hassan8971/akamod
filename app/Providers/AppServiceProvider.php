@@ -41,5 +41,9 @@ class AppServiceProvider extends ServiceProvider
             $view->with('headerMenuItems', $headerMenuItems)
                  ->with('footerMenuItems', $footerMenuItems);
         });
+
+        View::composer('*', function ($view) {
+            $view->with('activeProject', session('active_project', 'sibaneh'));
+        });
     }
 }

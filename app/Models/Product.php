@@ -18,13 +18,15 @@ class Product extends Model
         'slug',
         'description',
         'care_and_maintenance',
-        'product_id', // Your internal SKU
         'invoice_number',
         'is_visible',
         'is_for_men',
         'is_for_women',
+        'is_for_kids',
         'admin_id',
         'hover_image_id',
+        'apple_title',
+        'apple_description',
     ];
 
     protected function casts(): array
@@ -33,6 +35,7 @@ class Product extends Model
             'is_visible' => 'boolean',
             'is_for_men' => 'boolean',
             'is_for_women' => 'boolean',
+            'is_for_kids' => 'boolean',
         ];
     }
 
