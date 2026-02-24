@@ -33,7 +33,9 @@ class MenuItem extends Model
      */
     public function children(): HasMany
     {
-        return $this->hasMany(MenuItem::class, 'parent_id')->orderBy('order');
+        return $this->hasMany(MenuItem::class, 'parent_id')
+                    ->with('children') 
+                    ->orderBy('order');
     }
 
     public function getImageUrlAttribute()

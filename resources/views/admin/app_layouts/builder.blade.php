@@ -7,10 +7,8 @@
 @endpush
 
 @section('content')
-<!-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> -->
-<script defer src="http://localhost/alpine/dist/cdn.min.js"></script>
-<!-- <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script> -->
-<script src="http://localhost/sortable.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>\
 
 <div x-data="pageBuilder()" class="h-[calc(100vh-35px)] flex flex-col dir-ltr text-right">
     

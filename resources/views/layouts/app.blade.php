@@ -10,7 +10,7 @@
         /* This is for Alpine.js dropdowns */
         .group:hover .group-hover\:block { display: block; }
     </style>
-    <script defer src="http://localhost/alpine/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
 

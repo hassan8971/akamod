@@ -3,7 +3,7 @@
 @section('title', 'پرداخت')
 
 @section('content')
-<script defer src="http://localhost/alpine/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
 <div class="container mx-auto px-4 py-12" dir="rtl">
     <h1 class="text-3xl font-bold text-center mb-8">پرداخت</h1>

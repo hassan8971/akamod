@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\MenuItem;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MenuItemController extends Controller
 {
-    // Helper to get items for dropdowns
+    // متد کمکی برای دریافت آیتم‌ها جهت نمایش در منوی کشویی (Dropdown)
     private function getMenuItemsList()
     {
         return MenuItem::orderBy('name')->get();
@@ -16,67 +18,107 @@ class MenuItemController extends Controller
 
     public function index()
     {
-        // Get all items, ordered by group, then parent, then order
-        $menuItems = MenuItem::with('parent')
+        // دریافت همه آیتم‌ها از دیتابیس
+        $allMenuItems = MenuItem::with('parent')
                             ->orderBy('menu_group')
                             ->orderBy('parent_id')
                             ->orderBy('order')
                             ->get();
+
+        // جدا کردن منوهای اصلی (بدون والد)
+        $rootItems = $allMenuItems->whereNull('parent_id')->values();
+
+        // گروه‌بندی زیرمنوها بر اساس آیدی والدشان (برای نمایش سریع درختی)
+        $groupedChildren = $allMenuItems->whereNotNull('parent_id')->groupBy('parent_id');
                             
-        return view('admin.menu-items.index', compact('menuItems'));
+        return view('admin.menu-items.index', compact('rootItems', 'groupedChildren'));
     }
 
     public function create()
     {
         $menuItem = new MenuItem(['order' => 0]);
-        $menuItems = $this->getMenuItemsList(); // For parent dropdown
-        return view('admin.menu-items.create', compact('menuItem', 'menuItems'));
+        $menuItems = $this->getMenuItemsList(); 
+        $categories = Category::orderBy('name')->get(); 
+
+        return view('admin.menu-items.create', compact('menuItem', 'menuItems', 'categories'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'name' => 'required|string|max:255',
             'link_url' => 'required|string|max:255',
             'parent_id' => 'nullable|exists:menu_items,id',
             'menu_group' => 'required|string|max:100',
             'order' => 'required|integer|min:0',
+            'image' => 'nullable|image|max:2048',
         ]);
 
-        MenuItem::create($validated);
+        $data = $request->except('image');
+
+        // آپلود تصویر دقیقاً در مسیر menu-items
+        if ($request->hasFile('image')) {
+            $data['image_path'] = $request->file('image')->store('menu-items', 'public');
+        }
+
+        MenuItem::create($data);
+
         return redirect()->route('admin.menu-items.index')->with('success', 'آیتم منو با موفقیت ایجاد شد.');
     }
 
     public function edit(MenuItem $menuItem)
     {
-        // Get all items *except* this one (an item can't be its own parent)
+        // دریافت تمام آیتم‌ها به جز خودش (برای جلوگیری از خطای بصری)
         $menuItems = MenuItem::where('id', '!=', $menuItem->id)->orderBy('name')->get();
-        return view('admin.menu-items.edit', compact('menuItem', 'menuItems'));
+        $categories = Category::orderBy('name')->get();
+
+        return view('admin.menu-items.edit', compact('menuItem', 'menuItems', 'categories'));
     }
 
     public function update(Request $request, MenuItem $menuItem)
     {
-        $validated = $request->validate([
+        $request->validate([
             'name' => 'required|string|max:255',
             'link_url' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:menu_items,id',
+            'parent_id' => [
+                'nullable',
+                'exists:menu_items,id',
+                // جلوگیری از تنظیم کردن خود آیتم به عنوان والد (دقیقاً مثل سیستم اتوماسیون)
+                function ($attribute, $value, $fail) use ($menuItem) {
+                    if ($value == $menuItem->id) {
+                        $fail('یک آیتم نمی‌تواند والد خودش باشد.');
+                    }
+                },
+            ],
             'menu_group' => 'required|string|max:100',
             'order' => 'required|integer|min:0',
+            'image' => 'nullable|image|max:2048',
         ]);
-        
-        // Prevent setting itself as parent
-        if (isset($validated['parent_id']) && $validated['parent_id'] == $menuItem->id) {
-            return redirect()->back()->with('error', 'یک آیتم نمی‌تواند والد خودش باشد.');
+
+        $data = $request->except('image');
+
+        // آپلود تصویر جدید و حذف تصویر قبلی از سرور
+        if ($request->hasFile('image')) {
+            if ($menuItem->image_path) {
+                Storage::disk('public')->delete($menuItem->image_path);
+            }
+            $data['image_path'] = $request->file('image')->store('menu-items', 'public');
         }
 
-        $menuItem->update($validated);
+        $menuItem->update($data);
+
         return redirect()->route('admin.menu-items.index')->with('success', 'آیتم منو با موفقیت به‌روزرسانی شد.');
     }
 
     public function destroy(MenuItem $menuItem)
     {
-        // Deleting the parent will cascade and delete all children
+        // حذف عکس فیزیکی از روی سرور قبل از پاک کردن رکورد
+        if ($menuItem->image_path) {
+            Storage::disk('public')->delete($menuItem->image_path);
+        }
+        
         $menuItem->delete();
+        
         return redirect()->route('admin.menu-items.index')->with('success', 'آیتم منو (و زیرمجموعه‌های آن) با موفقیت حذف شد.');
     }
 }

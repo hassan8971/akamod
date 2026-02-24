@@ -16,47 +16,38 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Http; // 💡 برای ارسال درخواست به وردپرس
+use Illuminate\Support\Facades\Log;  // 💡 برای لاگ کردن خطاهای احتمالی ارتباط با وردپرس
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
-        // ۱. دریافت همه‌ی دسته‌بندی‌ها برای فیلتر
         $categories = Category::orderBy('name')->get();
         $selectedCategory = null;
 
-        // ۲. شروع ساخت کوئری محصولات
         $query = Product::with(['category', 'admin']);
 
-        // ۳. اعمال فیلتر در صورت وجود
         if ($request->filled('category_id')) {
             $categoryId = $request->input('category_id');
             $query->where('category_id', $categoryId);
             $selectedCategory = $categories->find($categoryId);
         }
 
-        // ۴. دریافت تعداد محصولات (فیلتر شده یا کل)
         $productCount = $query->count();
 
-        // ۵. دریافت نتایج نهایی با صفحه‌بندی
         $products = $query->latest()
                           ->paginate(20)
-                          ->withQueryString(); // <-- حفظ پارامترها در صفحه‌بندی
+                          ->withQueryString(); 
 
         return view('admin.products.index', compact(
             'products',
-            'categories',       // برای فیلتر
-            'productCount',     // برای نمایش تعداد
-            'selectedCategory'  // برای نمایش عنوان فیلتر
+            'categories',       
+            'productCount',     
+            'selectedCategory'  
         ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $categories = Category::all();
@@ -67,23 +58,13 @@ class ProductController extends Controller
         $allVideos = Video::all();
         $allPackagingOptions = PackagingOption::where('is_active', true)->get();
         
-        $latestProduct = Product::orderBy('id', 'desc')->first();
-        $nextId = $latestProduct ? $latestProduct->id + 1 : 1;
-        $newProductId = str_pad($nextId, 8, '0', STR_PAD_LEFT);
-        while (Product::where('product_id', $newProductId)->exists()) {
-            $nextId++;
-            $newProductId = str_pad($nextId, 8, '0', STR_PAD_LEFT);
-        }
-
         $product = new Product([
-            'product_id' => $newProductId,
             'is_visible' => true,
             'is_for_men' => false,
             'is_for_women' => false,
+            'is_for_kids' => false,
         ]);
         
-        // Load an empty relationship for the create form
-        // (این کار باعث می‌شود $product->videos->pluck('id') در ویو خطا ندهد)
         $product->load('videos', 'relatedProducts'); 
 
         return view('admin.products.create', compact(
@@ -98,26 +79,23 @@ class ProductController extends Controller
         ));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     * --- اصلاح شده ---
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            // Product Details
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:products,slug',
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
             'care_and_maintenance' => 'nullable|string',
-            'product_id' => 'required|string|max:255|unique:products,product_id',
             'invoice_number' => 'nullable|string|max:255|unique:products,invoice_number',
             'is_visible' => 'boolean',
             'is_for_men' => 'boolean',
             'is_for_women' => 'boolean',
+            'is_for_kids' => 'boolean',
             
-            // Variants Validation (بر اساس فرم شما)
+            'apple_title' => 'nullable|string|max:255',
+            'apple_description' => 'nullable|string',
+            
             'variants' => 'nullable|array',
             'variants.*.size' => 'required|string|max:255',
             'variants.*.color' => 'required|string|max:255',
@@ -126,12 +104,11 @@ class ProductController extends Controller
             'variants.*.buy_price' => 'nullable|integer|min:0',
             'variants.*.stock' => 'required_with:variants|integer|min:0',
             'variants.*.buy_source_id' => 'nullable|integer|exists:buy_sources,id',
+            'variants.*.sku' => 'nullable|string|max:255',
+            'variants.*.qr_code' => 'nullable|string|max:255',
 
-            // Media Validation
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            // (اعتبارسنجی فایل‌های ویدیویی حذف شد، چون دیگر مستقیماً آپلود نمی‌شوند)
-            // 'videos' => ... 
             
             'video_embeds' => 'nullable|array', 
             'video_embeds.*' => 'nullable|string|regex:/<iframe.*<\/iframe>/i', 
@@ -139,7 +116,6 @@ class ProductController extends Controller
             'related_product_ids' => 'nullable|array',
             'related_product_ids.*' => 'exists:products,id',
 
-            // --- FIX: Add validation for selected video IDs ---
             'video_ids' => 'nullable|array',
             'video_ids.*' => 'exists:videos,id',
 
@@ -148,31 +124,27 @@ class ProductController extends Controller
         ], [
             'variants.*.size.required' => 'فیلد سایز برای همه‌ی متغیرها الزامی است.',
             'variants.*.color.required' => 'فیلد رنگ برای همه‌ی متغیرها الزامی است.',
-            'variants.*.discount_price.lt' => 'قیمت با تخفیf باید کمتر از قیمت اصلی باشد.',
+            'variants.*.discount_price.lt' => 'قیمت با تخفیف باید کمتر از قیمت اصلی باشد.',
             'video_embeds.*.regex' => 'کد الصاقی (embed) معتبر نیست. باید شامل تگ <iframe> باشد.'
         ]);
         
-        // --- آماده‌سازی داده‌ها ---
         $validated['slug'] = empty($request->slug) ? Str::slug($request->name) . '-' . uniqid() : Str::slug($request->slug);
-        $validated['admin_id'] = Auth::guard('admin')->id();
+        $validated['admin_id'] = Auth::guard('admin')->id() ?? 1; // مقدار پیش‌فرض در صورت نبود احراز هویت
         $validated['is_visible'] = $request->boolean('is_visible');
         $validated['is_for_men'] = $request->boolean('is_for_men');
         $validated['is_for_women'] = $request->boolean('is_for_women');
-        // --- پایان آماده‌سازی ---
+        $validated['is_for_kids'] = $request->boolean('is_for_kids');
 
         DB::beginTransaction();
         try {
-            // 1. ایجاد محصول اصلی
             $product = Product::create($validated);
 
-            // 2. ایجاد متغیرها
             if ($request->has('variants')) {
                 foreach ($request->variants as $variantData) {
                     $product->variants()->create($variantData);
                 }
             }
 
-            // 3. ذخیره تصاویر
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $file) {
                     $path = $file->store('products', 'public');
@@ -180,13 +152,9 @@ class ProductController extends Controller
                 }
             }
             
-            // 4. ذخیره ویدیوهای الصاقی (Embed)
-            // (این بخش را نگه داشتیم، اما می‌توانید آن را حذف کنید اگر دیگر لازم نیست)
             if ($request->has('video_embeds')) {
                 foreach ($request->video_embeds as $embedCode) {
                     if (!empty($embedCode)) {
-                        // This uses the old logic, you might want to remove this
-                        // and force users to use the Video Library
                         $product->videos()->create([
                             'embed_code' => $embedCode,
                             'alt_text' => $product->name . ' (embed)',
@@ -196,34 +164,31 @@ class ProductController extends Controller
                 }
             }
         
-            // --- FIX: 5. ذخیره ویدیوهای مرتبط (از کتابخانه) ---
             if ($request->has('video_ids')) {
                 $product->videos()->sync($request->video_ids);
             }
 
-            // 6. ذخیره محصولات مرتبط
             if ($request->has('related_product_ids')) {
                 $product->relatedProducts()->sync($request->related_product_ids);
             }
 
-            // 7. ذخیره بسته‌بندی‌های مرتبط (این بلاک را اضافه کنید)
             if ($request->has('packaging_option_ids')) {
                 $product->packagingOptions()->sync($request->packaging_option_ids);
             }
 
-            DB::commit();
+            // 💡 همگام‌سازی با وردپرس بعد از ساخته شدن محصول
+            $this->syncProductToWordPress($product);
 
-            return redirect()->route('admin.products.edit', $product)->with('success', 'محصول با موفقیت ایجاد شد.');
+            DB::commit();
+            return redirect()->route('admin.products.edit', $product)->with('success', 'محصول با موفقیت ایجاد و به وردپرس ارسال شد.');
 
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Error creating product: ' . $e->getMessage());
             return redirect()->back()->with('error', 'خطا در ایجاد محصول: ' . $e->getMessage())->withInput();
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Product $product)
     {
         $categories = Category::all();
@@ -245,10 +210,6 @@ class ProductController extends Controller
         return view('admin.products.edit', compact('product', 'categories', 'sizes', 'colors', 'buySources', 'allProducts', 'allVideos', 'allPackagingOptions', 'avg_sale_price', 'avg_buy_price'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     * --- اصلاح شده ---
-     */
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
@@ -257,30 +218,33 @@ class ProductController extends Controller
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
             'care_and_maintenance' => 'nullable|string',
-            'product_id' => ['required', 'string', 'max:255', Rule::unique('products')->ignore($product->id)],
             'invoice_number' => [
                 'nullable',
                 'string',
                 'max:255',
-                // ستون invoice_number را چک کن
-                // و ردیفی که id آن برابر $product->id است را نادیده بگیر
                 Rule::unique('products', 'invoice_number')->ignore($product->id)
             ],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('products')->ignore($product->id)],
             'is_visible' => 'boolean',
             'is_for_men' => 'boolean',
             'is_for_women' => 'boolean',
+            'is_for_kids' => 'boolean',
+            
+            'apple_title' => 'nullable|string|max:255',
+            'apple_description' => 'nullable|string',
+
+            'variants' => 'nullable|array',
+            'variants.*.sku' => 'nullable|string|max:255',
+            'variants.*.qr_code' => 'nullable|string|max:255',
+            
             'related_product_ids' => 'nullable|array',
             'related_product_ids.*' => 'exists:products,id',
 
-            
-            
-            // --- FIX: Add validation for selected video IDs ---
             'video_ids' => 'nullable|array',
             'video_ids.*' => 'exists:videos,id',
+            
             'packaging_option_ids' => 'nullable|array',
             'packaging_option_ids.*' => 'exists:packaging_options,id'
-
         ]);
 
         if (empty($validated['slug'])) {
@@ -290,6 +254,7 @@ class ProductController extends Controller
         $validated['is_visible'] = $request->boolean('is_visible');
         $validated['is_for_men'] = $request->boolean('is_for_men');
         $validated['is_for_women'] = $request->boolean('is_for_women');
+        $validated['is_for_kids'] = $request->boolean('is_for_kids');
 
         $product->update($validated);
 
@@ -299,7 +264,6 @@ class ProductController extends Controller
             $product->relatedProducts()->sync([]);
         }
 
-        // --- Add sync logic for videos ---
         if ($request->has('video_ids')) {
             $product->videos()->sync($request->video_ids);
         } else {
@@ -312,14 +276,13 @@ class ProductController extends Controller
             $product->packagingOptions()->sync([]);
         }
         
+        // 💡 همگام‌سازی با وردپرس بعد از آپدیت
+        $this->syncProductToWordPress($product);
 
         return redirect()->route('admin.products.edit', $product)
-            ->with('success', 'محصول با موفقیت به‌روزرسانی شد.');
+            ->with('success', 'محصول با موفقیت به‌روزرسانی و با سایت همگام‌سازی شد.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Product $product)
     {
         $product->load('images', 'videos');
@@ -327,18 +290,13 @@ class ProductController extends Controller
         foreach ($product->images as $image) {
             Storage::disk('public')->delete($image->path);
         }
-        // We no longer delete videos, just detach them
-        // (unless they are 'upload' type and you want to delete the file)
         
-        $product->delete(); // This should detach pivot table records
+        $product->delete(); 
 
         return redirect()->route('admin.products.index')
             ->with('success', 'محصول (و تمام فایل‌های مرتبط) با موفقیت حذف شد.');
     }
 
-    /**
-     * Helper function to generate shoe size list.
-     */
     private function getSizeList(): array
     {
         $sizes = [];
@@ -346,5 +304,95 @@ class ProductController extends Controller
             $sizes[] = (string)$i;
         }
         return $sizes;
+    }
+
+    /**
+     * 💡 متد اختصاصی برای ارسال اطلاعات محصول به سایت وردپرسی آکامد
+     */
+    private function syncProductToWordPress($product)
+    {
+        // 1. لود کردن تمام وابستگی‌های محصول برای ارسال کامل
+        $product->loadMissing(['category', 'variants', 'images', 'relatedProducts', 'videos', 'packagingOptions']);
+
+        // 2. آماده‌سازی لیست تصاویر با لینک کامل دانلود
+        $imageUrls = [];
+        
+        // تشخیص اتوماتیک آدرس سرور (مثلاً: https://panel.akamode.com)
+        $remoteStorage = rtrim(config('app.url'), '/') . '/storage/'; 
+
+        foreach ($product->images as $img) {
+            $imageUrls[] = [
+                'id' => $img->id,
+                'path' => $img->path,
+                'url' => $remoteStorage . ltrim($img->path, '/') 
+            ];
+        }
+
+        // 3. پیدا کردن اسلاگ دسته‌بندی برای ست کردن در وردپرس
+        $categorySlug = $product->category ? $product->category->slug : null;
+
+        $allColors = Color::all(); 
+
+        $formattedVariants = $product->variants->map(function ($variant) use ($allColors) {
+            $vArray = $variant->toArray();
+            
+            // پیدا کردن رنگ متناظر از دیتابیس بر اساس نام ذخیره شده در واریانت
+            $colorObj = $allColors->where('name', $variant->color)->first();
+            
+            if ($colorObj) {
+                $vArray['color'] = [
+                    'name'         => $colorObj->name,
+                    'persian_name' => $colorObj->name, 
+                ];
+            } else {
+                $vArray['color'] = [
+                    'name'         => $variant->color,
+                    'persian_name' => $variant->color,
+                ];
+            }
+            
+            return $vArray;
+        })->toArray();
+
+        // 4. بسته‌بندی 100% تمام فیلدهای موجود برای وردپرس
+        $data = [
+            'id'                   => $product->id,
+            'name'                 => $product->name,
+            'slug'                 => $product->slug,
+            'description'          => $product->description,
+            'care_and_maintenance' => $product->care_and_maintenance,
+            'category_id'          => $product->category_id,
+            'category_slug'        => $categorySlug, 
+            'invoice_number'       => $product->invoice_number,
+            'is_visible'           => $product->is_visible,
+            'is_for_men'           => $product->is_for_men,
+            'is_for_women'         => $product->is_for_women,
+            'is_for_kids'          => $product->is_for_kids,
+            'apple_title'          => $product->apple_title,
+            'apple_description'    => $product->apple_description,
+            
+            // آرایه‌های پیچیده
+            'variants'                 => $formattedVariants,
+            'images'                   => $imageUrls,
+            'related_product_ids'      => $product->relatedProducts->pluck('id')->toArray(),
+            'video_ids'                => $product->videos->pluck('id')->toArray(),
+            'packaging_option_ids'     => $product->packagingOptions->pluck('id')->toArray(),
+        ];
+
+        try {
+            // آدرس سایت وردپرسی (حتماً در فایل env. لاراول خود، WP_AKAMODE_SECRET را تعریف کنید)
+            $wpUrl = env('WP_AKAMODE_URL', 'https://akamode.com') . '/wp-json/akamode/v1/sync-product';
+            $secret = env('WP_AKAMODE_SECRET', 'slafLKlskggslf@34rfkljw');
+
+            $response = Http::timeout(10)->withHeaders([
+                'X-Akamode-Secret' => $secret
+            ])->post($wpUrl, $data); 
+
+            if ($response->failed()) {
+                Log::error('WP Product Sync Failed. Status: ' . $response->status() . ' | Response: ' . $response->body());
+            }
+        } catch (\Exception $e) {
+            Log::error('WP Product Sync Connection Error: ' . $e->getMessage());
+        }
     }
 }

@@ -3,7 +3,7 @@
 @section('title', 'افزودن محصول جدید')
 
 @section('content')
-<script defer src="http://localhost/alpine/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
 <div class="flex justify-between items-center mb-6" dir="rtl">
     <h1 class="text-3xl font-bold">افزودن محصول جدید</h1>
@@ -42,10 +42,10 @@
 
         <div class="bg-white shadow-md rounded-lg p-6">
             <h2 class="text-xl font-semibold mb-4">۲. متغیرها (اختیاری)</h2>
-            <p class="text-sm text-gray-600 mb-4">متغیرهایی مانند رنگ، اندازه، قیمت و موجودی را در اینجا اضافه کنید.</p>
+            <p class="text-sm text-gray-600 mb-4">متغیرهایی مانند رنگ، اندازه، قیمت، کد QR و موجودی را در اینجا اضافه کنید.</p>
 
             <template x-for="(variant, index) in variants" :key="index">
-                <div class="grid grid-cols-1 md:grid-cols-7 gap-4 items-center mb-4 p-4 border rounded-lg">
+                <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-9 gap-4 items-center mb-4 p-4 border rounded-lg bg-gray-50">
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700">سایز</label>
@@ -53,8 +53,8 @@
                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
                             <option value="">انتخاب...</option>
                             <template x-for="size in sizes" :key="size.id">
-                            <option :value="size.name" x-text="size.name"></option>
-                        </template>
+                                <option :value="size.name" x-text="size.name"></option>
+                            </template>
                         </select>
                     </div>
                     
@@ -68,7 +68,13 @@
                             </template>
                         </select>
                     </div>
-                    
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">شناسه (SKU)</label>
+                        <input type="text" :name="'variants[' + index + '][sku]'" x-model="variant.sku" placeholder="SKU-123" dir="ltr"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-left">
+                    </div>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700">قیمت (تومان)</label>
                         <input type="number" :name="'variants[' + index + '][price]'" x-model="variant.price" placeholder="50000"
@@ -86,35 +92,35 @@
                         <input type="number" :name="'variants[' + index + '][buy_price]'" x-model="variant.buy_price" placeholder="30000"
                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
                     </div>
+                    
                     <div>
                         <label class="block text-sm font-medium text-gray-700">موجودی</label>
                         <input type="number" :name="'variants[' + index + '][stock]'" x-model="variant.stock" placeholder="100"
                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
                     </div>
-                    <template x-for="(variant, index) in variants" :key="index">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">سورس خرید</label>
-                            <select :name="'variants[' + index + '][buy_source_id]'" x-model="variant.buy_source_id"
-                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
-                                <option value="">انتخاب...</option>
-                                <template x-for="source in buySources" :key="source.id">
-                                    <option :value="source.id" x-text="source.name"></option>
-                                </template>
-                            </select>
-                        </div>
-                    </template>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">سورس خرید</label>
+                        <select :name="'variants[' + index + '][buy_source_id]'" x-model="variant.buy_source_id"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                            <option value="">انتخاب...</option>
+                            <template x-for="source in buySources" :key="source.id">
+                                <option :value="source.id" x-text="source.name"></option>
+                            </template>
+                        </select>
+                    </div>
 
-                    <div class="md:col-span-7 flex justify-end">
+                    <div class="md:col-span-4 lg:col-span-9 flex justify-end">
                         <button type="button" @click="variants.splice(index, 1)"
-                                class="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
-                            حذف
+                                class="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition">
+                            حذف این متغیر
                         </button>
                     </div>
                 </div>
             </template>
 
-            <button type="button" @click="variants.push({ id: Date.now(), size: '', color: '', price: 0, discount_price: null, buy_price: null, stock: 0, buy_source: '' })"
-                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+            <button type="button" @click="variants.push({ id: Date.now(), size: '', color: '', sku: '', qr_code: '', price: 0, discount_price: null, buy_price: null, stock: 0, buy_source: '' })"
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow">
                 + افزودن ردیف متغیر
             </button>
         </div>
@@ -133,15 +139,14 @@
             </div>
         </div>
 
-         
         <div class="bg-white shadow-md rounded-lg p-6" 
              dir="rtl"
              x-data="{
                  isOpen: false,
                  searchQuery: '',
                  allProducts: {{ $allProducts }},
-                 selectedProducts: [], // <-- FIX: Start with empty array
-                 formId: 'product-create-form', // <-- FIX: Set form ID
+                 selectedProducts: [],
+                 formId: 'product-create-form',
                  
                  get filteredProducts() {
                      if (this.searchQuery === '') {
@@ -166,7 +171,6 @@
                  },
                  
                  getProductName(id) {
-                     // --- FIX: Simplified for create page ---
                      const product = this.allProducts.find(p => p.id === id);
                      return product ? product.name : 'محصول یافت نشد';
                  }
@@ -230,8 +234,8 @@
                  isOpen: false,
                  searchQuery: '',
                  allVideos: {{ $allVideos }},
-                 selectedVideos: [], // <-- FIX: Start with empty array
-                 formId: 'product-create-form', // <-- FIX: Set form ID
+                 selectedVideos: [], 
+                 formId: 'product-create-form',
 
                  get filteredVideos() {
                      if (this.searchQuery === '') {
@@ -256,7 +260,6 @@
                  },
                  
                  getVideoName(id) {
-                     // --- FIX: Simplified for create page ---
                      const video = this.allVideos.find(v => v.id === id);
                      return video ? video.name : 'ویدیو یافت نشد';
                  }
@@ -313,96 +316,98 @@
                 </div>
             </div>
         </div>
+
         <div class="bg-white shadow-md rounded-lg p-6" 
-     dir="rtl"
-     x-data="{
-         isOpen: false,
-         searchQuery: '',
-         allPackagingOptions: {{ $allPackagingOptions }},
-         selectedPackagingOptions: [], // شروع با آرایه خالی
-         formId: 'product-create-form',
+             dir="rtl"
+             x-data="{
+                 isOpen: false,
+                 searchQuery: '',
+                 allPackagingOptions: {{ $allPackagingOptions }},
+                 selectedPackagingOptions: [], 
+                 formId: 'product-create-form',
 
-         get filteredPackagingOptions() {
-             if (this.searchQuery === '') {
-                 return this.allPackagingOptions.filter(p => !this.selectedPackagingOptions.includes(p.id)).slice(0, 50);
-             }
-             return this.allPackagingOptions.filter(p => 
-                 p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) && 
-                 !this.selectedPackagingOptions.includes(p.id)
-             ).slice(0, 50);
-         },
-         
-         addPackagingOption(optionId) {
-             if (!this.selectedPackagingOptions.includes(optionId)) {
-                 this.selectedPackagingOptions.push(optionId);
-             }
-             this.searchQuery = '';
-             this.isOpen = false;
-         },
-         
-         removePackagingOption(optionId) {
-             this.selectedPackagingOptions = this.selectedPackagingOptions.filter(id => id !== optionId);
-         },
-         
-         getPackagingOptionName(id) {
-             const option = this.allPackagingOptions.find(p => p.id === id);
-             return option ? option.name : 'بسته‌بندی یافت نشد';
-         }
-     }">
-    
-    <h2 class="text-xl font-semibold mb-4">۶. انواع بسته‌بندی (اختیاری)</h2>
-    <p class="text-sm text-gray-500 mb-4">انواع بسته‌بندی قابل انتخاب برای این محصول را مشخص کنید.</p>
-    
-    <template x-for="optionId in selectedPackagingOptions" :key="optionId">
-        <input type="hidden" name="packaging_option_ids[]" :value="optionId" :form="formId">
-    </template>
-    
-    <div class="flex flex-wrap gap-2 mb-4">
-        <template x-for="optionId in selectedPackagingOptions" :key="optionId">
-            <span class="flex items-center bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
-                <span x-text="getPackagingOptionName(optionId)"></span>
-                <button type="button" @click="removePackagingOption(optionId)" class="mr-2 text-green-600 hover:text-green-800">
-                    &times;
-                </button>
-            </span>
-        </template>
-        <p x-show="selectedPackagingOptions.length === 0" class="text-sm text-gray-500">
-            هنوز بسته‌بندی برای این محصول انتخاب نشده است. (بسته‌بندی‌های پیش‌فرض نمایش داده می‌شود)
-        </p>
-    </div>
-
-    <div class="relative">
-        <label for="packaging_search" class="block text-sm font-medium text-gray-700">افزودن بسته‌بندی</label>
-        <input type="text"
-               id="packaging_search"
-               x-model="searchQuery"
-               @focus="isOpen = true"
-               @click.away="isOpen = false"
-               placeholder="جستجوی نام بسته‌بندی..."
-               autocomplete="off"
-               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-        
-        <div x-show="isOpen" 
-             x-transition
-             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
-             style="display: none;">
+                 get filteredPackagingOptions() {
+                     if (this.searchQuery === '') {
+                         return this.allPackagingOptions.filter(p => !this.selectedPackagingOptions.includes(p.id)).slice(0, 50);
+                     }
+                     return this.allPackagingOptions.filter(p => 
+                         p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) && 
+                         !this.selectedPackagingOptions.includes(p.id)
+                     ).slice(0, 50);
+                 },
+                 
+                 addPackagingOption(optionId) {
+                     if (!this.selectedPackagingOptions.includes(optionId)) {
+                         this.selectedPackagingOptions.push(optionId);
+                     }
+                     this.searchQuery = '';
+                     this.isOpen = false;
+                 },
+                 
+                 removePackagingOption(optionId) {
+                     this.selectedPackagingOptions = this.selectedPackagingOptions.filter(id => id !== optionId);
+                 },
+                 
+                 getPackagingOptionName(id) {
+                     const option = this.allPackagingOptions.find(p => p.id === id);
+                     return option ? option.name : 'بسته‌بندی یافت نشد';
+                 }
+             }">
             
-            <ul class="py-1">
-                <template x-for="option in filteredPackagingOptions" :key="option.id">
-                    <li @click="addPackagingOption(option.id)"
-                        class="text-gray-900 cursor-pointer select-none relative py-2 px-4 hover:bg-gray-100">
-                        <span x-text="option.name"></span>
-                    </li>
+            <h2 class="text-xl font-semibold mb-4">۶. انواع بسته‌بندی (اختیاری)</h2>
+            <p class="text-sm text-gray-500 mb-4">انواع بسته‌بندی قابل انتخاب برای این محصول را مشخص کنید.</p>
+            
+            <template x-for="optionId in selectedPackagingOptions" :key="optionId">
+                <input type="hidden" name="packaging_option_ids[]" :value="optionId" :form="formId">
+            </template>
+            
+            <div class="flex flex-wrap gap-2 mb-4">
+                <template x-for="optionId in selectedPackagingOptions" :key="optionId">
+                    <span class="flex items-center bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
+                        <span x-text="getPackagingOptionName(optionId)"></span>
+                        <button type="button" @click="removePackagingOption(optionId)" class="mr-2 text-green-600 hover:text-green-800">
+                            &times;
+                        </button>
+                    </span>
                 </template>
-                <li x-show="filteredPackagingOptions.length === 0 && searchQuery !== ''" class="py-2 px-4 text-gray-500">
-                    بسته‌بندی با این نام یافت نشد.
-                </li>
-            </ul>
+                <p x-show="selectedPackagingOptions.length === 0" class="text-sm text-gray-500">
+                    هنوز بسته‌بندی برای این محصول انتخاب نشده است. (بسته‌بندی‌های پیش‌فرض نمایش داده می‌شود)
+                </p>
+            </div>
+
+            <div class="relative">
+                <label for="packaging_search" class="block text-sm font-medium text-gray-700">افزودن بسته‌بندی</label>
+                <input type="text"
+                       id="packaging_search"
+                       x-model="searchQuery"
+                       @focus="isOpen = true"
+                       @click.away="isOpen = false"
+                       placeholder="جستجوی نام بسته‌بندی..."
+                       autocomplete="off"
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                
+                <div x-show="isOpen" 
+                     x-transition
+                     class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+                     style="display: none;">
+                    
+                    <ul class="py-1">
+                        <template x-for="option in filteredPackagingOptions" :key="option.id">
+                            <li @click="addPackagingOption(option.id)"
+                                class="text-gray-900 cursor-pointer select-none relative py-2 px-4 hover:bg-gray-100">
+                                <span x-text="option.name"></span>
+                            </li>
+                        </template>
+                        <li x-show="filteredPackagingOptions.length === 0 && searchQuery !== ''" class="py-2 px-4 text-gray-500">
+                            بسته‌بندی با این نام یافت نشد.
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
+        
         <div class="flex justify-end mt-6">
-            <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-lg font-semibold">
+            <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-lg font-semibold shadow-lg transition">
                 ایجاد محصول
             </button>
         </div>

@@ -3,7 +3,7 @@
 @section('title', 'مدیریت محصولات')
 
 @section('content')
-<script defer src="http://localhost/alpine/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
 <div dir="rtl">
     <div class="flex flex-col md:flex-row justify-between items-center mb-6">

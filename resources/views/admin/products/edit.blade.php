@@ -3,9 +3,7 @@
 @section('title', 'ویرایش محصول: ' . $product->name)
 
 @push('styles')
-
 <style>
-    /* Visual feedback when dragging */
     .sortable-ghost {
         opacity: 0.4;
         background-color: #f3f4f6;
@@ -20,11 +18,10 @@
         z-index: 9999;
     }
 </style>
-
 @endpush
 
 @section('content')
-    <script defer src="http://localhost/alpine/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <div class="flex justify-between items-center mb-6" dir="rtl">
         <h1 class="text-3xl font-bold">ویرایش محصول: {{ $product->name }}</h1>
@@ -59,100 +56,98 @@
             
             @include('admin.products._form')
 
-            <!-- Start of Manage Related Products -->
-    <div class="bg-white rounded-lg p-6 mb-7" 
-         dir="rtl"
-         x-data="{
-             isOpen: false,
-             searchQuery: '',
-             allProducts: {{ $allProducts ?? '[]' }},
-             selectedProducts: {{ $product->relatedProducts->pluck('id') ?? '[]' }},
-             
-             get filteredProducts() {
-                 if (this.searchQuery === '') {
-                     return this.allProducts.filter(p => !this.selectedProducts.includes(p.id)).slice(0, 50);
-                 }
-                 return this.allProducts.filter(p => 
-                     p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) && 
-                     !this.selectedProducts.includes(p.id)
-                 ).slice(0, 50);
-             },
-             
-             addProduct(productId) {
-                 if (!this.selectedProducts.includes(productId)) {
-                     this.selectedProducts.push(productId);
-                 }
-                 this.searchQuery = '';
-                 this.isOpen = false;
-             },
-             
-             removeProduct(productId) {
-                 this.selectedProducts = this.selectedProducts.filter(id => id !== productId);
-             },
-             
-             getProductName(id) {
-                 const all = {{ $allProducts ?? '[]' }};
-                 const related = {{ $product->relatedProducts->keyBy('id') ?? '[]' }};
-                 const product = all.find(p => p.id === id) || related[id];
-                 return product ? product.name : 'محصول یافت نشد';
-             }
-         }">
-        
-        <h2 class="text-xl font-semibold mb-4">محصولات مرتبط</h2>
-        <p class="text-sm text-gray-500 mb-4">محصولاتی را که می‌خواهید در کنار این محصول نمایش داده شوند، انتخاب کنید.</p>
-        
-        <template x-for="productId in selectedProducts" :key="productId">
-            <input type="hidden" name="related_product_ids[]" :value="productId" form="product-update-form">
-        </template>
-        
-        <div class="flex flex-wrap gap-2 mb-4">
-            <template x-for="productId in selectedProducts" :key="productId">
-                <span class="flex items-center bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                    <span x-text="getProductName(productId)"></span>
-                    <button type="button" @click="removeProduct(productId)" class="mr-2 text-blue-600 hover:text-blue-800">
-                        &times;
-                    </button>
-                </span>
-            </template>
-            <p x-show="selectedProducts.length === 0" class="text-sm text-gray-500">
-                هنوز محصول مرتبطی انتخاب نشده است.
-            </p>
-        </div>
-
-        <div class="relative">
-            <label for="related_product_search" class="block text-sm font-medium text-gray-700">افزودن محصول</label>
-            <input type="text"
-                   id="related_product_search"
-                   x-model="searchQuery"
-                   @focus="isOpen = true"
-                   @click.away="isOpen = false"
-                   placeholder="جستجوی نام محصول..."
-                   autocomplete="off"
-                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-            
-            <div x-show="isOpen" 
-                 x-transition
-                 class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
-                 style="display: none;">
+            <div class="bg-white rounded-lg p-6 mb-7 mt-6 border border-gray-200" 
+                 dir="rtl"
+                 x-data="{
+                     isOpen: false,
+                     searchQuery: '',
+                     allProducts: {{ $allProducts ?? '[]' }},
+                     selectedProducts: {{ $product->relatedProducts->pluck('id') ?? '[]' }},
+                     
+                     get filteredProducts() {
+                         if (this.searchQuery === '') {
+                             return this.allProducts.filter(p => !this.selectedProducts.includes(p.id)).slice(0, 50);
+                         }
+                         return this.allProducts.filter(p => 
+                             p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) && 
+                             !this.selectedProducts.includes(p.id)
+                         ).slice(0, 50);
+                     },
+                     
+                     addProduct(productId) {
+                         if (!this.selectedProducts.includes(productId)) {
+                             this.selectedProducts.push(productId);
+                         }
+                         this.searchQuery = '';
+                         this.isOpen = false;
+                     },
+                     
+                     removeProduct(productId) {
+                         this.selectedProducts = this.selectedProducts.filter(id => id !== productId);
+                     },
+                     
+                     getProductName(id) {
+                         const all = {{ $allProducts ?? '[]' }};
+                         const related = {{ $product->relatedProducts->keyBy('id') ?? '[]' }};
+                         const product = all.find(p => p.id === id) || related[id];
+                         return product ? product.name : 'محصول یافت نشد';
+                     }
+                 }">
                 
-                <ul class="py-1">
-                    <template x-for="product in filteredProducts" :key="product.id">
-                        <li @click="addProduct(product.id)"
-                            class="text-gray-900 cursor-pointer select-none relative py-2 px-4 hover:bg-gray-100">
-                            <span x-text="product.name"></span>
-                        </li>
+                <h2 class="text-xl font-semibold mb-4">محصولات مرتبط</h2>
+                <p class="text-sm text-gray-500 mb-4">محصولاتی را که می‌خواهید در کنار این محصول نمایش داده شوند، انتخاب کنید.</p>
+                
+                <template x-for="productId in selectedProducts" :key="productId">
+                    <input type="hidden" name="related_product_ids[]" :value="productId" form="product-update-form">
+                </template>
+                
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <template x-for="productId in selectedProducts" :key="productId">
+                        <span class="flex items-center bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                            <span x-text="getProductName(productId)"></span>
+                            <button type="button" @click="removeProduct(productId)" class="mr-2 text-blue-600 hover:text-blue-800">
+                                &times;
+                            </button>
+                        </span>
                     </template>
-                    <li x-show="filteredProducts.length === 0 && searchQuery !== ''" class="py-2 px-4 text-gray-500">
-                        محصولی با این نام یافت نشد.
-                    </li>
-                    <li x-show="filteredProducts.length === 0 && searchQuery === ''" class="py-2 px-4 text-gray-500">
-                        تمام محصولات انتخاب شده‌اند یا محصول دیگری برای نمایش وجود ندارد.
-                    </li>
-                </ul>
+                    <p x-show="selectedProducts.length === 0" class="text-sm text-gray-500">
+                        هنوز محصول مرتبطی انتخاب نشده است.
+                    </p>
+                </div>
+
+                <div class="relative">
+                    <label for="related_product_search" class="block text-sm font-medium text-gray-700">افزودن محصول</label>
+                    <input type="text"
+                           id="related_product_search"
+                           x-model="searchQuery"
+                           @focus="isOpen = true"
+                           @click.away="isOpen = false"
+                           placeholder="جستجوی نام محصول..."
+                           autocomplete="off"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    
+                    <div x-show="isOpen" 
+                         x-transition
+                         class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+                         style="display: none;">
+                        
+                        <ul class="py-1">
+                            <template x-for="product in filteredProducts" :key="product.id">
+                                <li @click="addProduct(product.id)"
+                                    class="text-gray-900 cursor-pointer select-none relative py-2 px-4 hover:bg-gray-100">
+                                    <span x-text="product.name"></span>
+                                </li>
+                            </template>
+                            <li x-show="filteredProducts.length === 0 && searchQuery !== ''" class="py-2 px-4 text-gray-500">
+                                محصولی با این نام یافت نشد.
+                            </li>
+                            <li x-show="filteredProducts.length === 0 && searchQuery === ''" class="py-2 px-4 text-gray-500">
+                                تمام محصولات انتخاب شده‌اند یا محصول دیگری برای نمایش وجود ندارد.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    <!-- End of Manage Related Products -->
             
             <div class="flex justify-end mt-6">
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
@@ -162,32 +157,48 @@
         </form>
     </div>
 
-    <!-- Manage Variants -->
-    <div class="bg-white shadow-md rounded-lg p-6 mb-8" dir="rtl">
+    <div class="bg-white shadow-md rounded-lg p-6 mb-8" dir="rtl" x-data="{ activeQrUrl: null, activeQrCode: '' }">
         <h2 class="text-xl font-semibold mb-4">مدیریت متغیرها (Variants)</h2>
 
-        <!-- List Existing Variants -->
         <div class="mb-6">
             <h3 class="text-lg font-medium mb-2">متغیرهای موجود</h3>
             <div class="overflow-x-auto">
                 <table class="min-w-full">
-                    <thead>
+                    <thead class="bg-gray-100 text-gray-600">
                         <tr>
-                            <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold uppercase">سایز</th>
-                            <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold uppercase">رنگ</th>
-                            <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold uppercase">قیمت (تومان)</th>
-                            <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold uppercase">قیمت با تخفیف</th>
-                            <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold uppercase">قیمت خرید </th>
-                            <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold uppercase">موجودی</th>
-                            <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100 text-right text-xs font-semibold uppercase">سورس خرید</th>
-                            <th class="px-4 py-2 border-b-2 border-gray-200 bg-gray-100">عملیات</th>
+                            <th class="px-4 py-2 border-b-2 border-gray-200 text-right text-xs font-semibold uppercase">سایز</th>
+                            <th class="px-4 py-2 border-b-2 border-gray-200 text-right text-xs font-semibold uppercase">رنگ</th>
+                            <th class="px-3 py-2 text-right text-xs font-semibold uppercase">شناسه (SKU)</th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase">کد QR</th>
+                            <th class="px-4 py-2 border-b-2 border-gray-200 text-right text-xs font-semibold uppercase">قیمت (تومان)</th>
+                            <th class="px-4 py-2 border-b-2 border-gray-200 text-right text-xs font-semibold uppercase">قیمت با تخفیف</th>
+                            <th class="px-4 py-2 border-b-2 border-gray-200 text-right text-xs font-semibold uppercase">قیمت خرید </th>
+                            <th class="px-4 py-2 border-b-2 border-gray-200 text-right text-xs font-semibold uppercase">موجودی</th>
+                            <th class="px-4 py-2 border-b-2 border-gray-200 text-right text-xs font-semibold uppercase">سورس خرید</th>
+                            <th class="px-4 py-2 border-b-2 border-gray-200">عملیات</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="text-gray-700">
                         @forelse ($product->variants as $variant)
                             <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3 border-b border-gray-200">{{ $variant->size }}</td>
                                 <td class="px-4 py-3 border-b border-gray-200">{{ $variant->color }}</td>
+                                <td class="px-4 py-3 border-b border-gray-200 font-mono text-left" dir="ltr">
+                                    {{ $variant->sku ?? '---' }}
+                                </td>
+                                <td class="px-4 py-3 border-b border-gray-200 text-center align-middle">
+                                    @if($variant->qr_code)
+                                        <div class="flex justify-center">
+                                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ $variant->qr_code }}" 
+                                                alt="QR" 
+                                                @click="activeQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=500x500&data={{ $variant->qr_code }}'; activeQrCode = '{{ $variant->qr_code }}'"
+                                                class="w-8 h-8 p-0.5 bg-white border border-gray-300 rounded cursor-pointer hover:shadow-lg hover:scale-110 transition"
+                                                title="برای بزرگنمایی کلیک کنید">
+                                        </div>
+                                    @else
+                                        <span class="text-xs text-gray-400">---</span>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3 border-b border-gray-200">{{ number_format($variant->price) }}</td>
                                 <td class="px-4 py-3 border-b border-gray-200">{{ number_format($variant->discount_price) }}</td>
                                 <td class="px-4 py-3 border-b border-gray-200">{{ number_format($variant->buy_price) }}</td>
@@ -196,8 +207,8 @@
                                     {{ $variant->buySource->name ?? '---' }}
                                 </td>
                                 <td class="px-4 py-3 border-b border-gray-200 text-left">
-                                    <a href="{{ route('admin.variants.edit', $variant) }}" class="text-blue-600 hover:text-blue-900">ویرایش</a>
-                                    <form action="{{ route('admin.variants.destroy', $variant) }}" method="POST" class="inline-block mr-4" onsubmit="return confirm('آیا از حذف این متغیر مطمئن هستید؟');">
+                                    <a href="{{ route('admin.variants.edit', $variant) }}" class="text-blue-600 hover:text-blue-900 ml-2">ویرایش</a>
+                                    <form action="{{ route('admin.variants.destroy', $variant) }}" method="POST" class="inline-block" onsubmit="return confirm('آیا از حذف این متغیر مطمئن هستید؟');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-red-600 hover:text-red-900">حذف</button>
@@ -206,7 +217,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-4 py-3 border-b border-gray-200 text-center text-gray-500">
+                                <td colspan="10" class="px-4 py-3 border-b border-gray-200 text-center text-gray-500">
                                     هنوز متغیری ایجاد نشده است.
                                 </td>
                             </tr>
@@ -216,7 +227,41 @@
             </div>
         </div>
 
-        <!-- Add New Variant Form -->
+        <template x-teleport="body">
+            <div x-show="activeQrUrl" 
+                 style="display: none;"
+                 class="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm p-4"
+                 x-transition.opacity
+                 @click.self="activeQrUrl = null"> 
+                 
+                 <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 relative flex flex-col items-center">
+                    <button @click="activeQrUrl = null" class="absolute top-4 left-4 text-gray-400 hover:text-red-500 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">QR Code محصول</h3>
+                    
+                    <div class="bg-white p-2 rounded-lg shadow-inner border border-gray-200">
+                        <img :src="activeQrUrl" class="w-64 h-64 object-contain">
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <p class="text-sm text-gray-500 mb-1">کد متنی:</p>
+                        <code class="bg-gray-100 px-2 py-1 rounded text-blue-600 font-mono text-sm break-all" x-text="activeQrCode"></code>
+                    </div>
+
+                    <div class="mt-6 w-full flex gap-3">
+                        <a :href="activeQrUrl" target="_blank" download="qrcode.png" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-lg transition flex items-center justify-center gap-2">
+                            دانلود
+                        </a>
+                        <button @click="window.open(activeQrUrl, '_blank').print()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded-lg transition flex items-center justify-center gap-2">
+                            چاپ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
+
         <hr class="my-6">
         <div class="flex justify-between items-center mb-2">
             <h3 class="text-lg font-medium">افزودن متغیر جدید</h3>
@@ -228,9 +273,10 @@
 
         <form action="{{ route('admin.products.variants.store', $product) }}" method="POST" id="add-variant-form"
               x-data="{
-                  // 1. تعریف متغیرها با اولویت: 1. مقدار خطا (old) 2. حافظه مرورگر 3. خالی
                   size: '{{ old('size') }}' || localStorage.getItem('v_size_{{ $product->id }}') || '',
                   color: '{{ old('color') }}' || localStorage.getItem('v_color_{{ $product->id }}') || '',
+                  sku: '{{ old('sku') }}' || localStorage.getItem('v_sku_{{ $product->id }}') || '',
+                  qr_code: '{{ old('qr_code') }}' || localStorage.getItem('v_qr_{{ $product->id }}') || '',
                   price: '{{ old('price') }}' || localStorage.getItem('v_price_{{ $product->id }}') || '',
                   discount_price: '{{ old('discount_price') }}' || localStorage.getItem('v_discount_{{ $product->id }}') || '',
                   buy_price: '{{ old('buy_price') }}' || localStorage.getItem('v_buy_{{ $product->id }}') || '',
@@ -238,29 +284,29 @@
                   buy_source_id: '{{ old('buy_source_id') }}' || localStorage.getItem('v_source_{{ $product->id }}') || '',
 
                   init() {
-                      // 2. هر تغییری دادی، سریع تو حافظه ذخیره کن
                       this.$watch('size', val => localStorage.setItem('v_size_{{ $product->id }}', val));
                       this.$watch('color', val => localStorage.setItem('v_color_{{ $product->id }}', val));
+                      this.$watch('sku', val => localStorage.setItem('v_sku_{{ $product->id }}', val));
+                      this.$watch('qr_code', val => localStorage.setItem('v_qr_{{ $product->id }}', val));
                       this.$watch('price', val => localStorage.setItem('v_price_{{ $product->id }}', val));
                       this.$watch('discount_price', val => localStorage.setItem('v_discount_{{ $product->id }}', val));
                       this.$watch('buy_price', val => localStorage.setItem('v_buy_{{ $product->id }}', val));
                       this.$watch('stock', val => localStorage.setItem('v_stock_{{ $product->id }}', val));
                       this.$watch('buy_source_id', val => localStorage.setItem('v_source_{{ $product->id }}', val));
 
-                      // شنیدن رویداد پاکسازی
                       window.addEventListener('clear-variant-form', () => {
-                          this.size = ''; this.color = ''; this.price = ''; 
-                          this.discount_price = ''; this.buy_price = ''; 
-                          this.stock = ''; this.buy_source_id = '';
-                          // پاک کردن از حافظه
-                          const keys = ['size', 'color', 'price', 'discount', 'buy', 'stock', 'source'];
+                          this.size = ''; this.color = ''; this.sku = ''; this.qr_code = ''; 
+                          this.price = ''; this.discount_price = ''; 
+                          this.buy_price = ''; this.stock = ''; this.buy_source_id = '';
+                          
+                          const keys = ['size', 'color', 'sku', 'qr', 'price', 'discount', 'buy', 'stock', 'source'];
                           keys.forEach(k => localStorage.removeItem('v_' + k + '_{{ $product->id }}'));
                       });
                   }
               }"
         >
             @csrf
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 <div>
                     <label for="variant_size" class="block text-sm font-medium text-gray-700">سایز</label>
                     <select name="size" id="variant_size" x-model="size"
@@ -277,11 +323,14 @@
                             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
                         <option value="">انتخاب کنید...</option>
                         @foreach ($colors as $color)
-                            <option value="{{ $color->name }}">
-                                {{ $color->name }}
-                            </option>
+                            <option value="{{ $color->name }}">{{ $color->name }}</option>
                         @endforeach
                     </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">شناسه (SKU)</label>
+                    <input type="text" name="sku" x-model="sku" placeholder="مثال: PRO-001" dir="ltr"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-left">
                 </div>
                 <div>
                     <label for="variant_price" class="block text-sm font-medium text-gray-700">قیمت (تومان)</label>
@@ -289,22 +338,22 @@
                            step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
                 </div>
                 <div>
-                    <label for="discount_price" class="block text-sm font-medium text-gray-700">قیمت با تخفیف (تومان)</label>
-                    <input type="number" name="discount_price" id="discount_price" x-model="discount_price" placeholder="مثال: 50000"
-                           step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                    <label for="discount_price" class="block text-sm font-medium text-gray-700">قیمت با تخفیف</label>
+                    <input type="number" name="discount_price" id="discount_price" x-model="discount_price" placeholder="مثال: 45000"
+                           step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
                         @if(isset($avg_sale_price) && $avg_sale_price > 0)
                         <p class="mt-1 text-xs text-red-600">
-                            (میانگین فروش: {{ number_format($avg_sale_price) }} تومان)
+                            (میانگین: {{ number_format($avg_sale_price) }})
                         </p>
                         @endif
                 </div>
                 <div>
                     <label for="buy_price" class="block text-sm font-medium text-gray-700">قیمت خرید</label>
-                    <input type="number" name="buy_price" id="buy_price" x-model="buy_price" placeholder="مثال: 50000"
-                           step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                    <input type="number" name="buy_price" id="buy_price" x-model="buy_price" placeholder="مثال: 30000"
+                           step="1" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
                     @if(isset($avg_buy_price) && $avg_buy_price > 0)
                         <p class="mt-1 text-xs text-red-600">
-                            (میانگین خرید: {{ number_format($avg_buy_price) }} تومان)
+                            (میانگین: {{ number_format($avg_buy_price) }})
                         </p>
                     @endif
                 </div>
@@ -332,94 +381,91 @@
         </form>
     </div>
 
-    
-
-    <!-- Manage Images -->
     <div class="bg-white shadow-md rounded-lg p-6 mb-8" dir="rtl">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-semibold">مدیریت گالری (تصویر و ویدیو)</h2>
-        <span x-data="{ show: false }" 
-              @order-saved.window="show = true; setTimeout(() => show = false, 2000)"
-              x-show="show" 
-              x-transition
-              class="text-sm font-medium text-green-600 flex items-center gap-1">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-            ترتیب ذخیره شد
-        </span>
-    </div>
-
-    <p class="text-sm text-gray-500 mb-6 bg-gray-50 p-3 rounded border border-gray-100">
-        <span class="font-bold text-gray-700">راهنما:</span> 
-        از دکمه‌های فلش (<span class="font-bold text-lg leading-3">&rarr; &larr;</span>) برای تغییر ترتیب استفاده کنید. 
-        <span class="text-blue-600">برای پخش ویدیو روی آن کلیک کنید.</span>
-    </p>
-
-    <div x-data="imageManager(
-        {{ json_encode($product->images->sortBy('order')->values()->map(function($img) {
-            $isVideo = \Illuminate\Support\Str::endsWith(strtolower($img->path), ['.mp4', '.mov', '.avi', '.webm']);
-            return [
-                'id' => $img->id,
-                'url' => Storage::url($img->path),
-                'type' => $isVideo ? 'video' : 'image',
-                'delete_url' => route('admin.images.destroy', $img->id)
-            ];
-        })) }}
-    )">
-        
-        <div x-show="images.length === 0" class="text-center py-10 border-2 border-dashed border-gray-300 rounded-lg">
-            <p class="text-gray-500">هنوز فایلی آپلود نشده است.</p>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">مدیریت گالری (تصویر و ویدیو)</h2>
+            <span x-data="{ show: false }" 
+                  @order-saved.window="show = true; setTimeout(() => show = false, 2000)"
+                  x-show="show" 
+                  x-transition
+                  class="text-sm font-medium text-green-600 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                ترتیب ذخیره شد
+            </span>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
-            <template x-for="(media, index) in images" :key="media.id">
-                <div class="relative group bg-white border border-gray-200 rounded-lg p-2 shadow-sm hover:shadow-md transition-all">
-                    
-                    <div class="relative h-32 w-full mb-3 bg-gray-100 rounded overflow-hidden">
-                        
-                        <template x-if="media.type === 'image'">
-                            <img :src="media.url" class="w-full h-full object-cover pointer-events-none">
-                        </template>
+        <p class="text-sm text-gray-500 mb-6 bg-gray-50 p-3 rounded border border-gray-100">
+            <span class="font-bold text-gray-700">راهنما:</span> 
+            از دکمه‌های فلش (<span class="font-bold text-lg leading-3">&rarr; &larr;</span>) برای تغییر ترتیب استفاده کنید. 
+            <span class="text-blue-600">برای پخش ویدیو روی آن کلیک کنید.</span>
+        </p>
 
-                        <template x-if="media.type === 'video'">
-                            <div class="w-full h-full relative cursor-pointer group-hover:opacity-90 transition"
-                                 @click="activeVideo = media.url"> <video :src="media.url" class="w-full h-full object-cover pointer-events-none" muted></video>
-                                
-                                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 group-hover:bg-opacity-40 transition">
-                                    <div class="bg-white bg-opacity-90 rounded-full p-2 shadow-lg transform group-hover:scale-110 transition">
-                                        <svg class="w-6 h-6 text-blue-600 pl-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" /></svg>
+        <div x-data="imageManager(
+            {{ json_encode($product->images->sortBy('order')->values()->map(function($img) {
+                $isVideo = \Illuminate\Support\Str::endsWith(strtolower($img->path), ['.mp4', '.mov', '.avi', '.webm']);
+                return [
+                    'id' => $img->id,
+                    'url' => Storage::url($img->path),
+                    'type' => $isVideo ? 'video' : 'image',
+                    'delete_url' => route('admin.images.destroy', $img->id)
+                ];
+            })) }}
+        )">
+            
+            <div x-show="images.length === 0" class="text-center py-10 border-2 border-dashed border-gray-300 rounded-lg">
+                <p class="text-gray-500">هنوز فایلی آپلود نشده است.</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
+                <template x-for="(media, index) in images" :key="media.id">
+                    <div class="relative group bg-white border border-gray-200 rounded-lg p-2 shadow-sm hover:shadow-md transition-all">
+                        
+                        <div class="relative h-32 w-full mb-3 bg-gray-100 rounded overflow-hidden">
+                            
+                            <template x-if="media.type === 'image'">
+                                <img :src="media.url" class="w-full h-full object-cover pointer-events-none">
+                            </template>
+
+                            <template x-if="media.type === 'video'">
+                                <div class="w-full h-full relative cursor-pointer group-hover:opacity-90 transition"
+                                     @click="activeVideo = media.url"> 
+                                    <video :src="media.url" class="w-full h-full object-cover pointer-events-none" muted></video>
+                                    
+                                    <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 group-hover:bg-opacity-40 transition">
+                                        <div class="bg-white bg-opacity-90 rounded-full p-2 shadow-lg transform group-hover:scale-110 transition">
+                                            <svg class="w-6 h-6 text-blue-600 pl-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" /></svg>
+                                        </div>
                                     </div>
                                 </div>
+                            </template>
+
+                            <div class="absolute top-1 left-1 z-20">
+                                <form :action="media.delete_url" method="POST" onsubmit="return confirm('آیا از حذف این فایل مطمئن هستید؟');">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="bg-red-600 text-white p-1 rounded-full shadow hover:bg-red-700 transition opacity-80 hover:opacity-100">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </form>
                             </div>
-                        </template>
 
-                        <div class="absolute top-1 left-1 z-20">
-                            <form :action="media.delete_url" method="POST" onsubmit="return confirm('آیا از حذف این فایل مطمئن هستید؟');">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="bg-red-600 text-white p-1 rounded-full shadow hover:bg-red-700 transition opacity-80 hover:opacity-100">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
-                            </form>
+                            <div class="absolute top-1 right-1 bg-black bg-opacity-60 text-white text-xs px-2 py-0.5 rounded-full z-20 pointer-events-none">
+                                <span x-text="index + 1"></span>
+                            </div>
                         </div>
 
-                        <div class="absolute top-1 right-1 bg-black bg-opacity-60 text-white text-xs px-2 py-0.5 rounded-full z-20 pointer-events-none">
-                            <span x-text="index + 1"></span>
+                        <div class="flex items-center justify-between bg-gray-50 rounded p-1 gap-2">
+                            <button type="button" @click="move(index, -1)" :disabled="index === 0" :class="index === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-blue-100 text-blue-600'" class="flex-1 flex justify-center items-center py-1 rounded transition bg-white border border-gray-200">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </button>
+                            <button type="button" @click="move(index, 1)" :disabled="index === images.length - 1" :class="index === images.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-blue-100 text-blue-600'" class="flex-1 flex justify-center items-center py-1 rounded transition bg-white border border-gray-200">
+                                 <svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </button>
                         </div>
                     </div>
+                </template>
+            </div>
 
-                    <div class="flex items-center justify-between bg-gray-50 rounded p-1 gap-2">
-                        <button type="button" @click="move(index, -1)" :disabled="index === 0" :class="index === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-blue-100 text-blue-600'" class="flex-1 flex justify-center items-center py-1 rounded transition bg-white border border-gray-200">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                        </button>
-                        <button type="button" @click="move(index, 1)" :disabled="index === images.length - 1" :class="index === images.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-blue-100 text-blue-600'" class="flex-1 flex justify-center items-center py-1 rounded transition bg-white border border-gray-200">
-                             <svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                        </button>
-                    </div>
-
-                </div>
-            </template>
-        </div>
-
-        <template x-teleport="body">
+            <template x-teleport="body">
                 <div x-show="activeVideo" 
                      x-transition.opacity.duration.300ms
                      style="display: none;"
@@ -439,62 +485,54 @@
             </template>
         </div>
 
-    <div class="border-t pt-6">
-        <h3 class="text-lg font-medium mb-4">آپلود فایل جدید (عکس یا ویدیو)</h3>
-        <form action="{{ route('admin.products.images.store', $product) }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            <div class="flex items-center justify-center w-full">
-                <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
-                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                        <svg class="w-8 h-8 mb-4 text-gray-400" fill="none" viewBox="0 0 20 16"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/></svg>
-                        <p class="text-sm text-gray-500"><span class="font-semibold">برای آپلود کلیک کنید</span> (JPG, PNG, MP4)</p>
-                    </div>
-                    <input id="dropzone-file" name="images[]" multiple type="file" accept="image/*,video/*" class="hidden" onchange="this.form.submit()" />
-                </label>
-            </div>
-        </form>
+        <div class="border-t pt-6">
+            <h3 class="text-lg font-medium mb-4">آپلود فایل جدید (عکس یا ویدیو)</h3>
+            <form action="{{ route('admin.products.images.store', $product) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="flex items-center justify-center w-full">
+                    <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg class="w-8 h-8 mb-4 text-gray-400" fill="none" viewBox="0 0 20 16"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/></svg>
+                            <p class="text-sm text-gray-500"><span class="font-semibold">برای آپلود کلیک کنید</span> (JPG, PNG, MP4)</p>
+                        </div>
+                        <input id="dropzone-file" name="images[]" multiple type="file" accept="image/*,video/*" class="hidden" onchange="this.form.submit()" />
+                    </label>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
-
-    
-
-    <!-- Hover image start -->
 
     <div class="bg-white shadow-md rounded-lg p-6 mb-8" dir="rtl"
-     x-data="{
-        isOpen: false,
-        // Get the initial ID and URL from the server-side product object
-        selectedId: '{{ $product->hover_image_id }}',
-        selectedUrl: '{{ $product->hoverImage ? Storage::url($product->hoverImage->path) : '' }}',
+         x-data="{
+            isOpen: false,
+            selectedId: '{{ $product->hover_image_id }}',
+            selectedUrl: '{{ $product->hoverImage ? Storage::url($product->hoverImage->path) : '' }}',
 
-        openModal() {
-            this.isOpen = true;
-            // Lock body scroll
-            document.body.style.overflow = 'hidden';
-        },
+            openModal() {
+                this.isOpen = true;
+                document.body.style.overflow = 'hidden';
+            },
 
-        closeModal() {
-            this.isOpen = false;
-            // Unlock body scroll
-            document.body.style.overflow = 'auto';
-        },
+            closeModal() {
+                this.isOpen = false;
+                document.body.style.overflow = 'auto';
+            },
 
-        selectImage(id, url) {
-            this.selectedId = id;
-            this.selectedUrl = url;
-            this.closeModal();
-        },
+            selectImage(id, url) {
+                this.selectedId = id;
+                this.selectedUrl = url;
+                this.closeModal();
+            },
 
-        removeHoverImage() {
-            this.selectedId = '';
-            this.selectedUrl = '';
-        }
-     }">
+            removeHoverImage() {
+                this.selectedId = '';
+                this.selectedUrl = '';
+            }
+         }">
 
         <h2 class="text-xl font-semibold mb-4">تصویر هاور (Hover Image)</h2>
         <p class="text-sm text-gray-500 mb-4">
             تصویری را انتخاب کنید که وقتی کاربر موس را روی محصول نگه می‌دارد نمایش داده شود.
-            (از بین تصاویر آپلود شده انتخاب کنید)
         </p>
 
         <input type="hidden" name="hover_image_id" :value="selectedId" form="product-update-form">
@@ -541,7 +579,6 @@
 
                 <div class="p-6 overflow-y-auto bg-gray-100 flex-1">
                     @php
-                        // FILTER: Exclude videos from the list
                         $onlyImages = $product->images->filter(function($img) {
                             return !\Illuminate\Support\Str::endsWith(strtolower($img->path), ['.mp4', '.mov', '.avi', '.webm']);
                         });
@@ -549,7 +586,7 @@
 
                     @if($onlyImages->isEmpty())
                         <div class="text-center text-gray-500 py-10">
-                            هیچ تصویری برای این محصول یافت نشد. (ویدیوها در این بخش نمایش داده نمی‌شوند)
+                            هیچ تصویری برای این محصول یافت نشد.
                         </div>
                     @else
                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -563,10 +600,6 @@
                                     <div class="absolute top-2 right-2 bg-blue-600 text-white rounded-full p-1"
                                         x-show="selectedId == '{{ $img->id }}'">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    </div>
-
-                                    <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 text-center opacity-0 group-hover:opacity-100 transition">
-                                        انتخاب این تصویر
                                     </div>
                                 </div>
                             @endforeach
@@ -582,300 +615,225 @@
             </div>
         </div>
     </div>
-
-    <!-- Hover image end -->
-
-    <!-- Add videos Start -->
-
     <div class="bg-white shadow-md rounded-lg p-6" 
-     dir="rtl"
-     x-data="{
-         isOpen: false,
-         searchQuery: '',
-         allVideos: {{ $allVideos ?? '[]' }},
-         selectedVideos: {{ $product->videos->pluck('id') ?? '[]' }},
-         formId: 'product-update-form',
-         
-         get filteredVideos() {
-             if (this.searchQuery === '') {
-                 return this.allVideos.filter(v => !this.selectedVideos.includes(v.id)).slice(0, 50);
+         dir="rtl"
+         x-data="{
+             isOpen: false,
+             searchQuery: '',
+             allVideos: {{ $allVideos ?? '[]' }},
+             selectedVideos: {{ $product->videos->pluck('id') ?? '[]' }},
+             formId: 'product-update-form',
+             
+             get filteredVideos() {
+                 if (this.searchQuery === '') {
+                     return this.allVideos.filter(v => !this.selectedVideos.includes(v.id)).slice(0, 50);
+                 }
+                 return this.allVideos.filter(v => 
+                     v.name.toLowerCase().includes(this.searchQuery.toLowerCase()) && 
+                     !this.selectedVideos.includes(v.id)
+                 ).slice(0, 50);
+             },
+             
+             addVideo(videoId) {
+                 if (!this.selectedVideos.includes(videoId)) {
+                     this.selectedVideos.push(videoId);
+                 }
+                 this.searchQuery = '';
+                 this.isOpen = false;
+             },
+             
+             removeVideo(videoId) {
+                 this.selectedVideos = this.selectedVideos.filter(id => id !== videoId);
+             },
+             
+             getVideoName(id) {
+                 const video = this.allVideos.find(v => v.id === id);
+                 return video ? (video.name || video.alt_text || 'ویدیو بدون نام') : 'ویدیو یافت نشد';
              }
-             return this.allVideos.filter(v => 
-                 v.name.toLowerCase().includes(this.searchQuery.toLowerCase()) && 
-                 !this.selectedVideos.includes(v.id)
-             ).slice(0, 50);
-         },
-         
-         addVideo(videoId) {
-             if (!this.selectedVideos.includes(videoId)) {
-                 this.selectedVideos.push(videoId);
-             }
-             this.searchQuery = '';
-             this.isOpen = false;
-         },
-         
-         removeVideo(videoId) {
-             this.selectedVideos = this.selectedVideos.filter(id => id !== videoId);
-         },
-         
-         getVideoName(id) {
-             const video = this.allVideos.find(v => v.id === id);
-             return video ? (video.name || video.alt_text || 'ویدیو بدون نام') : 'ویدیو یافت نشد';
-         }
-     }">
-    
-    <h2 class="text-xl font-semibold mb-4">ویدیوهای محصول</h2>
-    <p class="text-sm text-gray-500 mb-4">ویدیوها را از کتابخانه انتخاب کنید. (ابتدا آن‌ها را در بخش "کتابخانه ویدیو" آپلود کنید)</p>
-    
-    <template x-for="videoId in selectedVideos" :key="videoId">
-        <input type="hidden" name="video_ids[]" :value="videoId" :form="formId">
-    </template>
-    
-    <div class="flex flex-wrap gap-2 mb-4">
+         }">
+        
+        <h2 class="text-xl font-semibold mb-4">ویدیوهای محصول</h2>
+        <p class="text-sm text-gray-500 mb-4">ویدیوها را از کتابخانه انتخاب کنید.</p>
+        
         <template x-for="videoId in selectedVideos" :key="videoId">
-            <span class="flex items-center bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full">
-                <span x-text="getVideoName(videoId)"></span>
-                <button type="button" @click="removeVideo(videoId)" class="mr-2 text-purple-600 hover:text-purple-800">
-                    &times;
-                </button>
-            </span>
+            <input type="hidden" name="video_ids[]" :value="videoId" :form="formId">
         </template>
-        <p x-show="selectedVideos.length === 0" class="text-sm text-gray-500">
-            هنوز ویدیویی برای این محصول انتخاب نشده است.
-        </p>
-    </div>
-
-    <div class="relative">
-        <label for="video_search" class="block text-sm font-medium text-gray-700">افزودن ویدیو از کتابخانه</label>
-        <input type="text"
-               id="video_search"
-               x-model="searchQuery"
-               @focus="isOpen = true"
-               @click.away="isOpen = false"
-               placeholder="جستجوی نام ویدیو..."
-               autocomplete="off"
-               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
         
-        <div x-show="isOpen" 
-             x-transition
-             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
-             style="display: none;">
-            
-            <ul class="py-1">
-                <template x-for="video in filteredVideos" :key="video.id">
-                    <li @click="addVideo(video.id)"
-                        class="text-gray-900 cursor-pointer select-none relative py-2 px-4 hover:bg-gray-100">
-                        <span x-text="video.name"></span>
-                    </li>
-                </template>
-                <li x-show="filteredVideos.length === 0 && searchQuery !== ''" class="py-2 px-4 text-gray-500">
-                    ویدیویی با این نام یافت نشد.
-                </li>
-            </ul>
+        <div class="flex flex-wrap gap-2 mb-4">
+            <template x-for="videoId in selectedVideos" :key="videoId">
+                <span class="flex items-center bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full">
+                    <span x-text="getVideoName(videoId)"></span>
+                    <button type="button" @click="removeVideo(videoId)" class="mr-2 text-purple-600 hover:text-purple-800">
+                        &times;
+                    </button>
+                </span>
+            </template>
+            <p x-show="selectedVideos.length === 0" class="text-sm text-gray-500">
+                هنوز ویدیویی انتخاب نشده است.
+            </p>
+        </div>
+
+        <div class="relative">
+            <label for="video_search" class="block text-sm font-medium text-gray-700">افزودن ویدیو</label>
+            <input type="text" id="video_search" x-model="searchQuery" @focus="isOpen = true" @click.away="isOpen = false" placeholder="جستجوی ویدیو..." class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            <div x-show="isOpen" style="display: none;" class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 overflow-auto">
+                <ul class="py-1">
+                    <template x-for="video in filteredVideos" :key="video.id">
+                        <li @click="addVideo(video.id)" class="text-gray-900 cursor-pointer py-2 px-4 hover:bg-gray-100">
+                            <span x-text="video.name"></span>
+                        </li>
+                    </template>
+                </ul>
+            </div>
         </div>
     </div>
-</div>
+    <div class="bg-white shadow-md rounded-lg p-6 mt-7" 
+         dir="rtl"
+         x-data="{
+             isOpen: false,
+             searchQuery: '',
+             allPackagingOptions: {{ $allPackagingOptions ?? '[]' }},
+             selectedPackagingOptions: {{ $product->packagingOptions->pluck('id') ?? '[]' }}, 
+             formId: 'product-update-form',
 
-<!-- Add Videos End -->
-
-<!-- Add Packaging Options Start -->
-
-<div class="bg-white shadow-md rounded-lg p-6 mt-7" 
-     dir="rtl"
-     x-data="{
-         isOpen: false,
-         searchQuery: '',
-         allPackagingOptions: {{ $allPackagingOptions ?? '[]' }},
-         
-         // --- تفاوت اصلی: پر کردن داده‌های قبلی ---
-         selectedPackagingOptions: {{ $product->packagingOptions->pluck('id') ?? '[]' }}, 
-         
-         formId: 'product-update-form',
-
-         get filteredPackagingOptions() {
-             if (this.searchQuery === '') {
-                 return this.allPackagingOptions.filter(p => !this.selectedPackagingOptions.includes(p.id)).slice(0, 50);
+             get filteredPackagingOptions() {
+                 if (this.searchQuery === '') {
+                     return this.allPackagingOptions.filter(p => !this.selectedPackagingOptions.includes(p.id)).slice(0, 50);
+                 }
+                 return this.allPackagingOptions.filter(p => 
+                     p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) && 
+                     !this.selectedPackagingOptions.includes(p.id)
+                 ).slice(0, 50);
+             },
+             
+             addPackagingOption(optionId) {
+                 if (!this.selectedPackagingOptions.includes(optionId)) {
+                     this.selectedPackagingOptions.push(optionId);
+                 }
+                 this.searchQuery = '';
+                 this.isOpen = false;
+             },
+             
+             removePackagingOption(optionId) {
+                 this.selectedPackagingOptions = this.selectedPackagingOptions.filter(id => id !== optionId);
+             },
+             
+             getPackagingOptionName(id) {
+                 const option = this.allPackagingOptions.find(p => p.id === id);
+                 return option ? option.name : 'بسته‌بندی یافت نشد';
              }
-             return this.allPackagingOptions.filter(p => 
-                 p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) && 
-                 !this.selectedPackagingOptions.includes(p.id)
-             ).slice(0, 50);
-         },
-         
-         addPackagingOption(optionId) {
-             if (!this.selectedPackagingOptions.includes(optionId)) {
-                 this.selectedPackagingOptions.push(optionId);
-             }
-             this.searchQuery = '';
-             this.isOpen = false;
-         },
-         
-         removePackagingOption(optionId) {
-             this.selectedPackagingOptions = this.selectedPackagingOptions.filter(id => id !== optionId);
-         },
-         
-         getPackagingOptionName(id) {
-             const option = this.allPackagingOptions.find(p => p.id === id);
-             return option ? option.name : 'بسته‌بندی یافت نشد';
-         }
-     }">
-    
-    <h2 class="text-xl font-semibold mb-4">انواع بسته‌بندی</h2>
-    <p class="text-sm text-gray-500 mb-4">انواع بسته‌بندی قابل انتخاب برای این محصول را مشخص کنید.</p>
-    
-    <template x-for="optionId in selectedPackagingOptions" :key="optionId">
-        <input type="hidden" name="packaging_option_ids[]" :value="optionId" :form="formId">
-    </template>
-    
-    <div class="flex flex-wrap gap-2 mb-4">
+         }">
+        
+        <h2 class="text-xl font-semibold mb-4">انواع بسته‌بندی</h2>
+        <p class="text-sm text-gray-500 mb-4">انواع بسته‌بندی قابل انتخاب برای این محصول را مشخص کنید.</p>
+        
         <template x-for="optionId in selectedPackagingOptions" :key="optionId">
-            <span class="flex items-center bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
-                <span x-text="getPackagingOptionName(optionId)"></span>
-                <button type="button" @click="removePackagingOption(optionId)" class="mr-2 text-green-600 hover:text-green-800">
-                    &times;
-                </button>
-            </span>
+            <input type="hidden" name="packaging_option_ids[]" :value="optionId" :form="formId">
         </template>
-        <p x-show="selectedPackagingOptions.length === 0" class="text-sm text-gray-500">
-            هنوز بسته‌بندی برای این محصول انتخاب نشده است.
-        </p>
-    </div>
-
-    <div class="relative">
-        <label for="packaging_search" class="block text-sm font-medium text-gray-700">افزودن بسته‌بندی</label>
-        <input type="text"
-               id="packaging_search"
-               x-model="searchQuery"
-               @focus="isOpen = true"
-               @click.away="isOpen = false"
-               placeholder="جستجوی نام بسته‌بندی..."
-               autocomplete="off"
-               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
         
-        <div x-show="isOpen" 
-             x-transition
-             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
-             style="display: none;">
-            
-            <ul class="py-1">
-                <template x-for="option in filteredPackagingOptions" :key="option.id">
-                    <li @click="addPackagingOption(option.id)"
-                        class="text-gray-900 cursor-pointer select-none relative py-2 px-4 hover:bg-gray-100">
-                        <span x-text="option.name"></span>
-                    </li>
-                </template>
-                <li x-show="filteredPackagingOptions.length === 0 && searchQuery !== ''" class="py-2 px-4 text-gray-500">
-                    بسته‌بندی با این نام یافت نشد.
-                </li>
-            </ul>
+        <div class="flex flex-wrap gap-2 mb-4">
+            <template x-for="optionId in selectedPackagingOptions" :key="optionId">
+                <span class="flex items-center bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
+                    <span x-text="getPackagingOptionName(optionId)"></span>
+                    <button type="button" @click="removePackagingOption(optionId)" class="mr-2 text-green-600 hover:text-green-800">
+                        &times;
+                    </button>
+                </span>
+            </template>
+            <p x-show="selectedPackagingOptions.length === 0" class="text-sm text-gray-500">
+                هنوز بسته‌بندی انتخاب نشده است.
+            </p>
+        </div>
+
+        <div class="relative">
+            <label for="packaging_search" class="block text-sm font-medium text-gray-700">افزودن بسته‌بندی</label>
+            <input type="text" id="packaging_search" x-model="searchQuery" @focus="isOpen = true" @click.away="isOpen = false" placeholder="جستجوی بسته‌بندی..." class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            <div x-show="isOpen" style="display: none;" class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 overflow-auto">
+                <ul class="py-1">
+                    <template x-for="option in filteredPackagingOptions" :key="option.id">
+                        <li @click="addPackagingOption(option.id)" class="text-gray-900 cursor-pointer py-2 px-4 hover:bg-gray-100">
+                            <span x-text="option.name"></span>
+                        </li>
+                    </template>
+                </ul>
+            </div>
         </div>
     </div>
-</div>
-
-<!-- Add Packaging Options End -->
-
-    
-    @endsection
+@endsection
 
 @push('scripts')
 <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const scrollKey = 'scroll_pos_' + window.location.pathname;
-            const savedPosition = localStorage.getItem(scrollKey);
+    document.addEventListener("DOMContentLoaded", function() {
+        const scrollKey = 'scroll_pos_' + window.location.pathname;
+        const savedPosition = localStorage.getItem(scrollKey);
 
-            // 1. Check if we need to scroll to the Variant Form
-            if (savedPosition === 'variant_form') {
-                const formElement = document.getElementById('add-variant-form');
-                if (formElement) {
-                    // Scrolls the form into the center of the view
-                    formElement.scrollIntoView({ behavior: 'auto', block: 'center' });
-                }
-                localStorage.removeItem(scrollKey);
-            } 
-            // 2. Otherwise, restore the exact pixel position (for other forms)
-            else if (savedPosition) {
-                window.scrollTo(0, parseInt(savedPosition));
-                localStorage.removeItem(scrollKey);
+        if (savedPosition === 'variant_form') {
+            const formElement = document.getElementById('add-variant-form');
+            if (formElement) {
+                formElement.scrollIntoView({ behavior: 'auto', block: 'center' });
             }
+            localStorage.removeItem(scrollKey);
+        } else if (savedPosition) {
+            window.scrollTo(0, parseInt(savedPosition));
+            localStorage.removeItem(scrollKey);
+        }
 
-            // 3. Listen for submits
-            document.querySelectorAll('form').forEach(form => {
-                form.addEventListener('submit', function() {
-                    // Check if this is the "Add Variant" form (by ID)
-                    if (this.id === 'add-variant-form') {
-                        // Save a special flag
-                        localStorage.setItem(scrollKey, 'variant_form');
-                    } else {
-                        // For all other forms, save exact pixel position
-                        localStorage.setItem(scrollKey, window.scrollY);
-                    }
-                });
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function() {
+                if (this.id === 'add-variant-form') {
+                    localStorage.setItem(scrollKey, 'variant_form');
+                } else {
+                    localStorage.setItem(scrollKey, window.scrollY);
+                }
             });
         });
-    </script>
+    });
+</script>
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('imageManager', (initialImages) => ({
+            images: initialImages,
+            isSaving: false,
+            activeVideo: null,
 
-    <script src="http://localhost/sortable.min.js"></script>
+            move(index, direction) {
+                const newIndex = index + direction;
+                if (newIndex < 0 || newIndex >= this.images.length) return;
+                
+                let tempImages = [...this.images];
+                [tempImages[index], tempImages[newIndex]] = [tempImages[newIndex], tempImages[index]];
+                this.images = tempImages;
 
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('imageManager', (initialImages) => ({
-                images: initialImages,
-                isSaving: false,
-                activeVideo: null,
+                this.saveOrder();
+            },
 
-                move(index, direction) {
-                    // Calculate new position
-                    const newIndex = index + direction;
+            saveOrder() {
+                if (this.isSaving) return;
+                this.isSaving = true;
 
-                    // Boundary checks
-                    if (newIndex < 0 || newIndex >= this.images.length) return;
+                const orderedIds = this.images.map(img => img.id);
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                    // 1. Swap in Array (Visual update)
-                    // We remove the item from the old index and insert it at the new index
-                    const item = this.images[index];
-                    
-                    // This logic handles both moving up and down correctly
-                    // We create a temp array to perform the swap cleanly
-                    let tempImages = [...this.images];
-                    // Swap elements
-                    [tempImages[index], tempImages[newIndex]] = [tempImages[newIndex], tempImages[index]];
-                    
-                    // Update the main array
-                    this.images = tempImages;
-
-                    // 2. Send to Server (Background)
-                    this.saveOrder();
-                },
-
-                saveOrder() {
-                    if (this.isSaving) return;
-                    this.isSaving = true;
-
-                    // Get just the IDs in the new order
-                    const orderedIds = this.images.map(img => img.id);
-
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-                    fetch('{{ route('admin.images.reorder') }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken
-                        },
-                        body: JSON.stringify({ images: orderedIds })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.status === 'success') {
-                            window.dispatchEvent(new CustomEvent('order-saved'));
-                        }
-                    })
-                    .catch(err => console.error(err))
-                    .finally(() => {
-                        this.isSaving = false;
-                    });
-                }
-            }));
-        });
-    </script>
+                fetch('{{ route('admin.images.reorder') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({ images: orderedIds })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        window.dispatchEvent(new CustomEvent('order-saved'));
+                    }
+                })
+                .catch(err => console.error(err))
+                .finally(() => {
+                    this.isSaving = false;
+                });
+            }
+        }));
+    });
+</script>
 @endpush
