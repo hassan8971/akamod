@@ -23,6 +23,8 @@ class Category extends Model
         'is_visible',
         'parent_id', // Added for nested categories
         'image_path', // Added for category image
+        'accordion_title',
+        'accordion_description',
     ];
 
     /**

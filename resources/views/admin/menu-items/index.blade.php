@@ -6,7 +6,7 @@
 
 <div dir="rtl" 
      x-data="{ 
-        expanded: [], // آرایه‌ای از آی‌دی‌های باز شده
+        expanded: [], 
         modalOpen: false,
         newChild: { parent_id: '', parent_name: '', menu_group: '' },
 
@@ -59,22 +59,20 @@
                         $hasChild = $children->isNotEmpty();
                     @endphp
 
-                    {{-- ردیف والد --}}
+                    {{-- ================= لایه اول (پدر بزرگ) ================= --}}
                     <tr class="hover:bg-gray-50 transition border-b border-gray-100">
                         <td class="px-5 py-4 text-sm font-bold flex items-center gap-2">
-                            {{-- آیکون فلش (فقط اگر فرزند داشته باشد) --}}
                             @if($hasChild)
                                 <button @click="toggle({{ $root->id }})" class="focus:outline-none transition-transform duration-200 p-1 rounded hover:bg-gray-200"
                                         :class="expanded.includes({{ $root->id }}) ? '-rotate-90' : ''">
                                     <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                                 </button>
                             @else
-                                <span class="w-6"></span> {{-- فضای خالی برای تراز شدن --}}
+                                <span class="w-6"></span>
                             @endif
                             
                             {{ $root->name }}
 
-                            {{-- دکمه افزودن سریع ساب منو --}}
                             <button @click="openAddModal({{ $root->id }}, '{{ $root->name }}', '{{ $root->menu_group }}')" 
                                     class="mr-2 text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded border border-blue-100 hover:bg-blue-100 transition"
                                     title="افزودن زیرمنو">
@@ -103,45 +101,93 @@
                         </td>
                     </tr>
 
-                    {{-- ردیف‌های فرزندان (تودرتو) --}}
-                    @if($hasChild)
-                        <template x-if="expanded.includes({{ $root->id }})">
-                            @foreach($children->sortBy('order') as $child)
-                                <tr class="bg-gray-50 hover:bg-gray-100 transition" 
-                                    x-transition:enter="transition ease-out duration-100"
-                                    x-transition:enter-start="opacity-0 -translate-y-2"
-                                    x-transition:enter-end="opacity-100 translate-y-0">
-                                    <td class="px-5 py-3 text-sm pr-12 flex items-center relative">
-                                        {{-- خط راهنما --}}
-                                        <div class="absolute right-6 top-0 bottom-0 w-0.5 bg-gray-200 h-full"></div>
-                                        <div class="absolute right-6 top-1/2 w-4 h-0.5 bg-gray-200"></div>
-                                        
-                                        {{ $child->name }}
-                                    </td>
-                                    <td class="px-5 py-3 text-sm">
-                                        @if($child->image_path)
-                                            <img src="{{ Storage::url($child->image_path) }}" class="w-8 h-8 object-cover rounded shadow-sm">
-                                        @else
-                                            <span class="text-gray-400 text-xs">---</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-5 py-3 text-sm font-mono text-gray-500" dir="ltr">{{ $child->link_url }}</td>
-                                    <td class="px-5 py-3 text-sm text-gray-400 text-xs">
-                                        فرزندِ {{ $root->name }}
-                                    </td>
-                                    <td class="px-5 py-3 text-sm">{{ $child->order }}</td>
-                                    <td class="px-5 py-3 text-sm text-left">
-                                        <a href="{{ route('admin.menu-items.edit', $child->id) }}" class="text-blue-600 hover:text-blue-900 ml-4 text-xs">ویرایش</a>
-                                        <form action="{{ route('admin.menu-items.destroy', $child->id) }}" method="POST" class="inline-block" onsubmit="return confirm('آیا از حذف این زیرمنو مطمئن هستید؟');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900 text-xs">حذف</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </template>
-                    @endif
+                    {{-- ================= لایه دوم (فرزندان) ================= --}}
+                    @foreach($children->sortBy('order') as $child)
+                        @php
+                            $grandchildren = $groupedChildren->get($child->id) ?? collect();
+                            $hasGrandchild = $grandchildren->isNotEmpty();
+                        @endphp
+                        
+                        {{-- 💡 تغییر اصلی: استفاده از x-show مستقیماً روی tr --}}
+                        <tr x-show="expanded.includes({{ $root->id }})" style="display: none;" class="bg-gray-50 hover:bg-gray-100 transition">
+                            <td class="px-5 py-3 text-sm pr-12 flex items-center gap-2 relative">
+                                {{-- خط راهنما لایه ۲ --}}
+                                <div class="absolute right-6 top-0 bottom-0 w-0.5 bg-gray-300 h-full"></div>
+                                <div class="absolute right-6 top-1/2 w-4 h-0.5 bg-gray-300"></div>
+                                
+                                {{-- دکمه باز کردن لایه سوم (اگر نوه داشته باشد) --}}
+                                @if($hasGrandchild)
+                                    <button @click="toggle({{ $child->id }})" class="focus:outline-none transition-transform duration-200 p-1 rounded hover:bg-gray-200 bg-white shadow-sm z-10"
+                                            :class="expanded.includes({{ $child->id }}) ? '-rotate-90' : ''">
+                                        <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                    </button>
+                                @else
+                                    <span class="w-5"></span>
+                                @endif
+
+                                <span class="font-medium text-gray-800">{{ $child->name }}</span>
+                                
+                                {{-- دکمه افزودن سریع لایه سوم --}}
+                                <button @click="openAddModal({{ $child->id }}, '{{ $child->name }}', '{{ $child->menu_group }}')" 
+                                        class="mr-1 text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded border border-green-200 hover:bg-green-100 transition z-10"
+                                        title="افزودن زیرمنو لایه سوم">
+                                    + نوه
+                                </button>
+                            </td>
+                            <td class="px-5 py-3 text-sm">
+                                @if($child->image_path)
+                                    <img src="{{ Storage::url($child->image_path) }}" class="w-8 h-8 object-cover rounded shadow-sm">
+                                @else
+                                    <span class="text-gray-400 text-xs">---</span>
+                                @endif
+                            </td>
+                            <td class="px-5 py-3 text-sm font-mono text-gray-500" dir="ltr">{{ $child->link_url }}</td>
+                            <td class="px-5 py-3 text-sm text-gray-400 text-xs">فرزندِ {{ $root->name }}</td>
+                            <td class="px-5 py-3 text-sm">{{ $child->order }}</td>
+                            <td class="px-5 py-3 text-sm text-left">
+                                <a href="{{ route('admin.menu-items.edit', $child->id) }}" class="text-blue-600 hover:text-blue-900 ml-4 text-xs">ویرایش</a>
+                                <form action="{{ route('admin.menu-items.destroy', $child->id) }}" method="POST" class="inline-block" onsubmit="return confirm('آیا از حذف این زیرمنو مطمئن هستید؟');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-900 text-xs">حذف</button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        {{-- ================= لایه سوم (نوه‌ها) ================= --}}
+                        @foreach($grandchildren->sortBy('order') as $grandchild)
+                            {{-- 💡 تغییر اصلی: اگر والدِ این نوه باز بود و والدِ والدش هم باز بود، نمایش بده --}}
+                            <tr x-show="expanded.includes({{ $root->id }}) && expanded.includes({{ $child->id }})" style="display: none;" class="bg-gray-100 hover:bg-gray-200 transition">
+                                <td class="px-5 py-2 text-sm pr-20 flex items-center relative">
+                                    {{-- خط راهنما لایه ۳ --}}
+                                    <div class="absolute right-6 top-0 bottom-0 w-0.5 bg-gray-300 h-full"></div>
+                                    <div class="absolute right-14 top-0 bottom-0 w-0.5 bg-gray-400 h-full"></div>
+                                    <div class="absolute right-14 top-1/2 w-4 h-0.5 bg-gray-400"></div>
+                                    
+                                    <span class="text-gray-600 text-xs">{{ $grandchild->name }}</span>
+                                </td>
+                                <td class="px-5 py-2 text-sm">
+                                    @if($grandchild->image_path)
+                                        <img src="{{ Storage::url($grandchild->image_path) }}" class="w-6 h-6 object-cover rounded shadow-sm">
+                                    @else
+                                        <span class="text-gray-300 text-xs">---</span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-2 text-sm font-mono text-gray-400 text-xs" dir="ltr">{{ $grandchild->link_url }}</td>
+                                <td class="px-5 py-2 text-sm text-gray-400 text-xs">فرزندِ {{ $child->name }}</td>
+                                <td class="px-5 py-2 text-sm text-xs">{{ $grandchild->order }}</td>
+                                <td class="px-5 py-2 text-sm text-left">
+                                    <a href="{{ route('admin.menu-items.edit', $grandchild->id) }}" class="text-blue-500 hover:text-blue-800 ml-4 text-[11px]">ویرایش</a>
+                                    <form action="{{ route('admin.menu-items.destroy', $grandchild->id) }}" method="POST" class="inline-block" onsubmit="return confirm('آیا از حذف این آیتم مطمئن هستید؟');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-500 hover:text-red-800 text-[11px]">حذف</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+
+                    @endforeach
 
                 @empty
                     <tr>
@@ -170,7 +216,6 @@
             
             <form action="{{ route('admin.menu-items.store') }}" method="POST" enctype="multipart/form-data" class="p-4 space-y-4">
                 @csrf
-                {{-- مقادیر مخفی --}}
                 <input type="hidden" name="parent_id" x-model="newChild.parent_id">
                 <input type="hidden" name="menu_group" x-model="newChild.menu_group">
 

@@ -19,10 +19,12 @@ use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\Admin\ProductImageController;
 use App\Http\Controllers\Admin\VideoController;
 use App\Http\Controllers\Admin\AppLayoutController;
+use App\Http\Controllers\Admin\HomepageController;
 use App\Http\Controllers\Auth\LoginController as UserLoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\OtpLoginController;
 use App\Http\Controllers\CheckoutController;
+
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -111,6 +113,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('layouts/{page}/save-all', [AppLayoutController::class, 'saveAll'])->name('layouts.save_all');
         Route::post('layouts/upload-image', [AppLayoutController::class, 'uploadImage'])->name('layouts.upload_image');
         Route::post('layouts/upload-video', [AppLayoutController::class, 'uploadVideo'])->name('layouts.upload_video');
+
+        Route::get('/homepage-settings', [HomepageController::class, 'edit'])->name('homepage.edit');
+        Route::put('/homepage-settings', [HomepageController::class, 'update'])->name('homepage.update');
     });
 });
 
