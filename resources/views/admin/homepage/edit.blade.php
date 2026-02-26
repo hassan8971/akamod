@@ -151,7 +151,8 @@
                     @foreach(['carousel_1' => 'کاروسل اول (ساده)', 'carousel_2' => 'کاروسل دوم (با پس‌زمینه)', 'carousel_3' => 'کاروسل سوم (با عکس کناری)'] as $key => $title)
                     <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
                         <h3 class="font-bold text-lg mb-4 text-blue-600">{{ $title }}</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 border-b pb-6">
                             <div><label class="block text-sm">عنوان بزرگ</label><input type="text" name="{{$key}}[title]" value="{{ $data[$key]['title'] ?? '' }}" class="w-full border rounded p-2"></div>
                             <div><label class="block text-sm">زیر عنوان</label><input type="text" name="{{$key}}[subtitle]" value="{{ $data[$key]['subtitle'] ?? '' }}" class="w-full border rounded p-2"></div>
                             <div><label class="block text-sm">متن نشان/بج</label><input type="text" name="{{$key}}[badge]" value="{{ $data[$key]['badge'] ?? '' }}" class="w-full border rounded p-2"></div>
@@ -172,6 +173,46 @@
                                 </div>
                             @endif
                         </div>
+
+                        <div class="bg-white p-4 rounded border border-blue-100" x-data="{ queryType: '{{ $data[$key]['query_type'] ?? 'latest' }}' }">
+                            <h4 class="font-bold text-gray-800 mb-3 text-sm">تنظیمات نمایش محصولات این کاروسل</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">منبع محصولات</label>
+                                    <select name="{{$key}}[query_type]" x-model="queryType" class="mt-1 w-full border rounded p-2 bg-gray-50 focus:bg-white">
+                                        <option value="latest">جدیدترین محصولات (پیش‌فرض)</option>
+                                        <option value="category">بر اساس دسته‌بندی</option>
+                                        <option value="manual">انتخاب دستی محصولات</option>
+                                    </select>
+                                </div>
+
+                                <div x-show="queryType === 'category'" style="display: none;">
+                                    <label class="block text-sm font-medium text-gray-700">انتخاب دسته‌بندی</label>
+                                    <select name="{{$key}}[category_slug]" class="mt-1 w-full border rounded p-2">
+                                        <option value="">-- یک دسته انتخاب کنید --</option>
+                                        @foreach($categories as $cat)
+                                            <option value="{{ $cat->slug }}" {{ ($data[$key]['category_slug'] ?? '') == $cat->slug ? 'selected' : '' }}>
+                                                {{ $cat->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div x-show="queryType === 'manual'" style="display: none;" class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700">انتخاب محصولات</label>
+                                    <span class="text-[10px] text-gray-500 block mb-1">برای انتخاب چند مورد، کلید Ctrl (یا Cmd در مک) را نگه دارید.</span>
+                                    <select name="{{$key}}[manual_products][]" multiple class="w-full border rounded p-2 h-40 bg-gray-50">
+                                        @foreach($products as $prod)
+                                            <option value="{{ $prod->slug }}" {{ in_array($prod->slug, $data[$key]['manual_products'] ?? []) ? 'selected' : '' }}>
+                                                {{ $prod->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                     @endforeach
                 </div>

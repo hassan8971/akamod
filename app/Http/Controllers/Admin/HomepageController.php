@@ -16,12 +16,15 @@ class HomepageController extends Controller
         $setting = DB::table('settings')->where('key', 'homepage_data')->first();
         $data = $setting ? json_decode($setting->value, true) : [];
 
-        // مقادیر پیش‌فرض برای جلوگیری از ارور در فرانت‌اند
         if (empty($data['main_slider'])) $data['main_slider'] = [[]];
         if (empty($data['category_grid'])) $data['category_grid'] = [[]];
         if (empty($data['info_accordions'])) $data['info_accordions'] = [[]];
 
-        return view('admin.homepage.edit', compact('data'));
+        // 💡 دریافت لیست دسته‌بندی‌ها و محصولات برای نمایش در فرم
+        $categories = \App\Models\Category::select('id', 'name', 'slug')->get();
+        $products = \App\Models\Product::select('id', 'name', 'slug')->latest()->get();
+
+        return view('admin.homepage.edit', compact('data', 'categories', 'products'));
     }
 
     public function update(Request $request)
@@ -107,7 +110,7 @@ class HomepageController extends Controller
     private function syncToWordPress($data)
     {
         try {
-            $wpUrl = env('WP_AKAMODE_URL', 'https://akamode.com') . '/wp-json/akamode/v1/sync-homepage';
+            $wpUrl = env('WP_AKAMODE_URL', 'http://akamode.com') . '/wp-json/akamode/v1/sync-homepage';
             $secret = env('WP_AKAMODE_SECRET', 'slafLKlskggslf@34rfkljw');
 
             $response = Http::timeout(15)->withHeaders([
