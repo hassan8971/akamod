@@ -7,14 +7,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Arr;
 
 class HomepageController extends Controller
 {
     public function edit()
     {
-        // دریافت تنظیمات ذخیره شده از دیتابیس
         $setting = DB::table('settings')->where('key', 'homepage_data')->first();
         $data = $setting ? json_decode($setting->value, true) : [];
+
+        // مقادیر پیش‌فرض برای جلوگیری از ارور در فرانت‌اند
+        if (empty($data['main_slider'])) $data['main_slider'] = [[]];
+        if (empty($data['category_grid'])) $data['category_grid'] = [[]];
+        if (empty($data['info_accordions'])) $data['info_accordions'] = [[]];
 
         return view('admin.homepage.edit', compact('data'));
     }
@@ -24,57 +29,79 @@ class HomepageController extends Controller
         $oldSetting = DB::table('settings')->where('key', 'homepage_data')->first();
         $oldData = $oldSetting ? json_decode($oldSetting->value, true) : [];
 
-        // دریافت تمام دیتای ارسال شده از فرم
+        // کل دیتای ورودی را می‌گیریم (بدون فایل‌ها)
         $data = $request->except(['_token', '_method']);
-
         $remoteStorage = rtrim(config('app.url'), '/') . '/storage/';
 
-        // ۱. مدیریت آپلود عکس‌های اسلایدر اصلی
-        if (isset($data['main_slider'])) {
-            foreach ($data['main_slider'] as $index => $slide) {
-                // عکس بک‌گراند اسلاید
+        // 1. پردازش آرایه پویا: اسلایدر اصلی
+        $sliderData = [];
+        if ($request->has('main_slider')) {
+            foreach ($request->input('main_slider') as $index => $slide) {
+                // آپلود بک‌گراند
                 if ($request->hasFile("main_slider.{$index}.image")) {
                     $path = $request->file("main_slider.{$index}.image")->store('homepage', 'public');
-                    $data['main_slider'][$index]['image'] = $remoteStorage . ltrim($path, '/');
+                    $slide['image'] = $remoteStorage . ltrim($path, '/');
                 } else {
-                    $data['main_slider'][$index]['image'] = $oldData['main_slider'][$index]['image'] ?? '';
+                    $slide['image'] = $oldData['main_slider'][$index]['image'] ?? '';
                 }
-                
-                // عکس بج (کوچک) اسلاید
+                // آپلود عکس بج
                 if ($request->hasFile("main_slider.{$index}.badge_img")) {
                     $path = $request->file("main_slider.{$index}.badge_img")->store('homepage', 'public');
-                    $data['main_slider'][$index]['badge_img'] = $remoteStorage . ltrim($path, '/');
+                    $slide['badge_img'] = $remoteStorage . ltrim($path, '/');
                 } else {
-                    $data['main_slider'][$index]['badge_img'] = $oldData['main_slider'][$index]['badge_img'] ?? '';
+                    $slide['badge_img'] = $oldData['main_slider'][$index]['badge_img'] ?? '';
                 }
+                $sliderData[] = $slide;
+            }
+        }
+        $data['main_slider'] = $sliderData;
+
+        // 2. پردازش آرایه پویا: گرید عکس‌های دسته‌بندی
+        $catGridData = [];
+        if ($request->has('category_grid')) {
+            foreach ($request->input('category_grid') as $index => $item) {
+                if ($request->hasFile("category_grid.{$index}.image")) {
+                    $path = $request->file("category_grid.{$index}.image")->store('homepage', 'public');
+                    $item['image'] = $remoteStorage . ltrim($path, '/');
+                } else {
+                    $item['image'] = $oldData['category_grid'][$index]['image'] ?? '';
+                }
+                $catGridData[] = $item;
+            }
+        }
+        $data['category_grid'] = $catGridData;
+
+        // 3. آپلود تصاویر تکی (بنرها، آیتم‌های اصیل، کاروسل‌ها و بخش اطلاعات)
+        $singleImageFields = [
+            'middle_images.image_1', 'middle_images.image_2',
+            'authentic_section.big_card.image', 'authentic_section.small_card_1.image', 'authentic_section.small_card_2.image',
+            'carousel_2.background_image',
+            'carousel_3.side_image',
+            'info_section.image_1', 'info_section.image_2'
+        ];
+
+        foreach ($singleImageFields as $fieldPath) {
+            if ($request->hasFile($fieldPath)) {
+                $path = $request->file($fieldPath)->store('homepage', 'public');
+                Arr::set($data, $fieldPath, $remoteStorage . ltrim($path, '/'));
+            } else {
+                Arr::set($data, $fieldPath, Arr::get($oldData, $fieldPath, ''));
             }
         }
 
-        // ۲. مدیریت آپلود عکس‌های میانی (دو بنر کنار هم)
-        if ($request->hasFile('middle_images.image_1')) {
-            $path = $request->file('middle_images.image_1')->store('homepage', 'public');
-            $data['middle_images']['image_1'] = $remoteStorage . ltrim($path, '/');
-        } else {
-            $data['middle_images']['image_1'] = $oldData['middle_images']['image_1'] ?? '';
-        }
+        // 4. پردازش آرایه پویا: آکاردئون‌ها (فقط متن است)
+        $data['info_accordions'] = $request->input('info_accordions', []);
 
-        if ($request->hasFile('middle_images.image_2')) {
-            $path = $request->file('middle_images.image_2')->store('homepage', 'public');
-            $data['middle_images']['image_2'] = $remoteStorage . ltrim($path, '/');
-        } else {
-            $data['middle_images']['image_2'] = $oldData['middle_images']['image_2'] ?? '';
-        }
-
-        // ذخیره در دیتابیس لاراول
+        // ذخیره در دیتابیس
         DB::table('settings')->updateOrInsert(
             ['key' => 'homepage_data'],
             ['value' => json_encode($data), 'updated_at' => now()]
         );
 
-        // ارسال داینامیک اطلاعات به وردپرس
+        // همگام‌سازی با وردپرس
         $this->syncToWordPress($data);
 
-        return redirect()->back()->with('success', 'تنظیمات صفحه اصلی با موفقیت ذخیره و در سایت اعمال شد.');
+        return redirect()->back()->with('success', 'تمام تنظیمات صفحه اصلی با موفقیت ذخیره و در سایت اعمال شد.');
     }
 
     private function syncToWordPress($data)
@@ -83,7 +110,7 @@ class HomepageController extends Controller
             $wpUrl = env('WP_AKAMODE_URL', 'https://akamode.com') . '/wp-json/akamode/v1/sync-homepage';
             $secret = env('WP_AKAMODE_SECRET', 'slafLKlskggslf@34rfkljw');
 
-            $response = Http::timeout(10)->withHeaders([
+            $response = Http::timeout(15)->withHeaders([
                 'X-Akamode-Secret' => $secret
             ])->post($wpUrl, $data);
 
