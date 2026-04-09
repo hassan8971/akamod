@@ -381,7 +381,7 @@ class ProductController extends Controller
 
         try {
             // آدرس سایت وردپرسی (حتماً در فایل env. لاراول خود، WP_AKAMODE_SECRET را تعریف کنید)
-            $wpUrl = env('WP_AKAMODE_URL', 'https://akamode.com') . '/wp-json/akamode/v1/sync-product';
+            $wpUrl = env('WP_AKAMODE_URL', 'http://localhost/wordpress') . '/wp-json/akamode/v1/sync-product';
             $secret = env('WP_AKAMODE_SECRET', 'slafLKlskggslf@34rfkljw');
 
             $response = Http::timeout(10)->withHeaders([

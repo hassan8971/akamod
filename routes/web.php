@@ -35,7 +35,7 @@ Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
 });
 
-Route::domain('dash.akamode.com')->group(function () {
+Route::domain('localhost')->group(function () {
 // Admin Login
 Route::post('admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
 
