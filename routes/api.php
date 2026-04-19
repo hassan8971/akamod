@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\v1\CheckoutController;
 use App\Http\Controllers\Api\v1\MenuController;
 use App\Http\Controllers\Api\v1\BlogController;
 use App\Http\Controllers\Api\v1\CartController;
+use App\Http\Controllers\Api\NewsletterController;
 use App\Http\Controllers\Api\Bridge\BridgeProductController;
 use App\Http\Middleware\CheckAdminBridge;
 use App\Http\Controllers\Api\Bridge\BridgeDashboardController;
@@ -76,6 +77,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('products/{product}/reviews', [ProductReviewController::class, 'store']);
 
     Route::post('checkout', [CheckoutController::class, 'store']);
+
+    Route::post('/newsletter/subscribe', [NewsletterController::class, 'store']);
 
 });
 

@@ -24,6 +24,7 @@ use App\Http\Controllers\Auth\LoginController as UserLoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\OtpLoginController;
 use App\Http\Controllers\CheckoutController;
+use App\Models\NewsletterSubscriber;
 
 
 Route::get('/', function () {
@@ -35,7 +36,7 @@ Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
 });
 
-Route::domain('localhost')->group(function () {
+Route::domain('dash.akamode.com')->group(function () {
 // Admin Login
 Route::post('admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
 
@@ -116,6 +117,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/homepage-settings', [HomepageController::class, 'edit'])->name('homepage.edit');
         Route::put('/homepage-settings', [HomepageController::class, 'update'])->name('homepage.update');
+
+        // Add this to your existing admin route group
+        Route::get('/newsletter', function () {
+            $subscribers = NewsletterSubscriber::orderBy('created_at', 'desc')->paginate(20);
+            return view('admin.newsletter.index', compact('subscribers'));
+        })->name('admin.newsletter.index');
     });
 });
 

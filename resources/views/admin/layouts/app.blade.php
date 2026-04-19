@@ -134,6 +134,17 @@
                     </svg>
                     <span>دسته‌بندی‌های وبلاگ</span>
                 </a>
+
+                <a href="{{ route('admin.homepage.edit') }}" 
+    class="flex items-center space-x-3 px-4 py-3 rounded-lg space-x-reverse text-gray-200 hover:bg-slate-700 hover:text-white
+            {{ request()->routeIs('admin.homepage.*') ? 'bg-slate-900 text-white' : '' }}">
+    
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.879-3.879a1.5 1.5 0 1 0-2.12-2.122l-3.88 3.88a15.996 15.996 0 0 0-4.648 4.764m3.42 3.42a6.75 6.75 0 0 0-3.42-3.42" />
+                    </svg>
+                    
+                    <span>تنظیمات صفحه اصلی</span>
+                </a>
                 
                 </nav>
 

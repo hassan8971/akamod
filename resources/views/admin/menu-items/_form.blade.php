@@ -178,7 +178,10 @@
                 <label for="menu_group" class="block text-sm font-medium text-gray-700">گروه منو</label>
                 <select name="menu_group" id="menu_group" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500">
                     <option value="main_header" @selected(old('menu_group', $menuItem->menu_group ?? '') == 'main_header')>هدر اصلی</option>
+                    <option value="header_contact" @selected(old('menu_group', $menuItem->menu_group ?? '') == 'header_contact')>اطلاعات تماس هدر</option>
                     <option value="footer_links" @selected(old('menu_group', $menuItem->menu_group ?? '') == 'footer_links')>لینک‌های فوتر</option>
+                    <option value="footer_contact" @selected(old('menu_group', $menuItem->menu_group ?? '') == 'footer_contact')>اطلاعات تماس فوتر</option>
+                    <option value="footer_social" @selected(old('menu_group', $menuItem->menu_group ?? '') == 'footer_social')>شبکه‌های اجتماعی فوتر</option>
                 </select>
                 @error('menu_group') <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span> @enderror
             </div>

@@ -33,6 +33,18 @@
             <div class="p-6 bg-white min-h-[500px]">
 
                 <div x-show="activeTab === 'slider'" x-data="{ slides: {{ json_encode($data['main_slider']) }} }">
+                  	
+                  <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+        <h3 class="font-bold text-gray-800 mb-3 text-sm">تنظیمات عمومی اسلایدر</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">سرعت تغییر خودکار (میلی‌ثانیه)</label>
+                <input type="number" name="slider_duration" value="{{ $data['slider_duration'] ?? 3000 }}" class="mt-1 w-full border rounded p-2 bg-white" placeholder="مثال: 3000">
+                <span class="text-[10px] text-gray-500 block mt-1">۱۰۰۰ میلی‌ثانیه = ۱ ثانیه (پیش‌فرض: 3000)</span>
+            </div>
+        </div>
+    </div>
+                  
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
                         <h2 class="text-xl font-semibold">اسلایدر اصلی سایت</h2>
                         <button type="button" @click="slides.push({})" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-200">+ افزودن اسلاید جدید</button>
@@ -85,8 +97,25 @@
                         <template x-for="(item, index) in gridItems" :key="index">
                             <div class="bg-gray-50 p-3 border rounded relative">
                                 <button type="button" @click="gridItems.splice(index, 1)" class="absolute top-2 left-2 text-red-500 hover:text-red-700 text-xl font-bold">&times;</button>
-                                <label class="block text-xs mb-1">لینک تصویر</label>
-                                <input type="text" :name="'category_grid['+index+'][link_url]'" :value="item.link_url" dir="ltr" class="w-full text-xs border rounded p-1 mb-2" placeholder="URL اختیاری">
+                                  <div class="mb-2">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <label class="block text-xs font-bold">
+                                            لینک تصویر <span class="text-red-500">*</span>
+                                        </label>
+                                        <span x-show="!item.link_url" class="text-[10px] text-red-600 font-bold" x-cloak>
+                                            (پر کردن فیلد اجباری است)
+                                        </span>
+                                    </div>
+
+                                    <input type="text" 
+                                           :name="'category_grid['+index+'][link_url]'" 
+                                           x-model="item.link_url" 
+                                           required
+                                           dir="ltr" 
+                                           class="w-full text-xs border rounded p-1 outline-none transition-colors" 
+                                           :class="!item.link_url ? 'border-red-500 bg-red-50 focus:border-red-600' : 'border-gray-300 focus:border-blue-500'"
+                                           placeholder="https://...">
+                                  </div>
                                 <input type="file" :name="'category_grid['+index+'][image]'" class="w-full text-xs">
                                 <template x-if="item.image"><img :src="item.image" class="h-20 w-full object-cover mt-2 rounded"></template>
                             </div>
