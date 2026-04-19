@@ -179,6 +179,7 @@
                 <select name="menu_group" id="menu_group" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500">
                     <option value="main_header" @selected(old('menu_group', $menuItem->menu_group ?? '') == 'main_header')>هدر اصلی</option>
                     <option value="header_contact" @selected(old('menu_group', $menuItem->menu_group ?? '') == 'header_contact')>اطلاعات تماس هدر</option>
+                    <option value="search_suggestions" @selected(old('menu_group', $menuItem->menu_group ?? '') == 'search_suggestions')>پیشنهادات جستجو</option>
                     <option value="footer_links" @selected(old('menu_group', $menuItem->menu_group ?? '') == 'footer_links')>لینک‌های فوتر</option>
                     <option value="footer_contact" @selected(old('menu_group', $menuItem->menu_group ?? '') == 'footer_contact')>اطلاعات تماس فوتر</option>
                     <option value="footer_social" @selected(old('menu_group', $menuItem->menu_group ?? '') == 'footer_social')>شبکه‌های اجتماعی فوتر</option>

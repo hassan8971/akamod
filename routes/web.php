@@ -25,6 +25,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\OtpLoginController;
 use App\Http\Controllers\CheckoutController;
 use App\Models\NewsletterSubscriber;
+use App\Models\ContactMessage;
 
 
 Route::get('/', function () {
@@ -122,7 +123,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/newsletter', function () {
             $subscribers = NewsletterSubscriber::orderBy('created_at', 'desc')->paginate(20);
             return view('admin.newsletter.index', compact('subscribers'));
-        })->name('admin.newsletter.index');
+        })->name('newsletter.index');
+
+
+        Route::get('/contacts', function () {
+            $messages = ContactMessage::orderBy('created_at', 'desc')->paginate(20);
+            return view('admin.contacts.index', compact('messages'));
+        })->name('contacts.index');
+
+
     });
 });
 
