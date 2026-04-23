@@ -285,13 +285,20 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        // 💡 1. Store the ID before deleting the product
+        $productId = $product->id; 
+
         $product->load('images', 'videos');
 
         foreach ($product->images as $image) {
             Storage::disk('public')->delete($image->path);
         }
         
+        // 2. Delete from Laravel
         $product->delete(); 
+
+        // 💡 3. Now use the stored ID to delete from WordPress
+        $this->deleteProductFromWordPress($productId);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'محصول (و تمام فایل‌های مرتبط) با موفقیت حذف شد.');
@@ -381,7 +388,7 @@ class ProductController extends Controller
 
         try {
             // آدرس سایت وردپرسی (حتماً در فایل env. لاراول خود، WP_AKAMODE_SECRET را تعریف کنید)
-            $wpUrl = env('WP_AKAMODE_URL', 'http://localhost/wordpress') . '/wp-json/akamode/v1/sync-product';
+            $wpUrl = env('WP_AKAMODE_URL', 'https://akamode.com') . '/wp-json/akamode/v1/sync-product';
             $secret = env('WP_AKAMODE_SECRET', 'slafLKlskggslf@34rfkljw');
 
             $response = Http::timeout(10)->withHeaders([
@@ -393,6 +400,30 @@ class ProductController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('WP Product Sync Connection Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 💡 ارسال درخواست حذف محصول به وردپرس
+     */
+    private function deleteProductFromWordPress($productId)
+    {
+        try {
+            $wpUrl = env('WP_AKAMODE_URL', 'https://akamode.com') . '/wp-json/akamode/v1/delete-product';
+            $secret = env('WP_AKAMODE_SECRET', 'slafLKlskggslf@34rfkljw');
+
+            // Send a POST request with the ID to be deleted
+            $response = Http::timeout(10)->withHeaders([
+                'X-Akamode-Secret' => $secret
+            ])->post($wpUrl, [
+                'id' => $productId
+            ]); 
+
+            if ($response->failed()) {
+                Log::error('WP Product Delete Failed. Status: ' . $response->status() . ' | Response: ' . $response->body());
+            }
+        } catch (\Exception $e) {
+            Log::error('WP Product Delete Connection Error: ' . $e->getMessage());
         }
     }
 }

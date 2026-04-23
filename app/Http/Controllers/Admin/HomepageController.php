@@ -40,14 +40,12 @@ class HomepageController extends Controller
         $sliderData = [];
         if ($request->has('main_slider')) {
             foreach ($request->input('main_slider') as $index => $slide) {
-                // آپلود بک‌گراند
                 if ($request->hasFile("main_slider.{$index}.image")) {
                     $path = $request->file("main_slider.{$index}.image")->store('homepage', 'public');
                     $slide['image'] = $remoteStorage . ltrim($path, '/');
                 } else {
                     $slide['image'] = $oldData['main_slider'][$index]['image'] ?? '';
                 }
-                // آپلود عکس بج
                 if ($request->hasFile("main_slider.{$index}.badge_img")) {
                     $path = $request->file("main_slider.{$index}.badge_img")->store('homepage', 'public');
                     $slide['badge_img'] = $remoteStorage . ltrim($path, '/');
@@ -74,7 +72,7 @@ class HomepageController extends Controller
         }
         $data['category_grid'] = $catGridData;
 
-        // 3. آپلود تصاویر تکی (بنرها، آیتم‌های اصیل، کاروسل‌ها و بخش اطلاعات)
+        // 3. آپلود تصاویر تکی
         $singleImageFields = [
             'middle_images.image_1', 'middle_images.image_2',
             'authentic_section.big_card.image', 'authentic_section.small_card_1.image', 'authentic_section.small_card_2.image',
@@ -92,7 +90,32 @@ class HomepageController extends Controller
             }
         }
 
-        // 4. پردازش آرایه پویا: آکاردئون‌ها (فقط متن است)
+        // 4. پردازش کاروسل‌ها و آیتم‌های سفارشی (Custom Items)
+        $carousels = ['carousel_1', 'carousel_2', 'carousel_3'];
+        foreach ($carousels as $carousel) {
+            if (isset($data[$carousel]['query_type']) && $data[$carousel]['query_type'] === 'custom') {
+                $customItems = [];
+                if ($request->has("{$carousel}.custom_items")) {
+                    foreach ($request->input("{$carousel}.custom_items") as $index => $item) {
+                        // آپلود عکس مربوط به آیتم سفارشی
+                        if ($request->hasFile("{$carousel}.custom_items.{$index}.image")) {
+                            $path = $request->file("{$carousel}.custom_items.{$index}.image")->store('homepage', 'public');
+                            $item['image'] = $remoteStorage . ltrim($path, '/');
+                        } else {
+                            // در صورت عدم تغییر، عکس قبلی را نگه دار
+                            $item['image'] = Arr::get($oldData, "{$carousel}.custom_items.{$index}.image", '');
+                        }
+                        $customItems[] = $item;
+                    }
+                }
+                Arr::set($data, "{$carousel}.custom_items", $customItems);
+            } else {
+                // اگر نوع کاروسل سفارشی نیست، آرایه آیتم‌های سفارشی را خالی کن تا حجم دیتابیس اشغال نشود
+                Arr::set($data, "{$carousel}.custom_items", []);
+            }
+        }
+
+        // 5. پردازش آرایه پویا: آکاردئون‌ها
         $data['info_accordions'] = $request->input('info_accordions', []);
 
         // ذخیره در دیتابیس
