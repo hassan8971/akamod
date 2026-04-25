@@ -510,7 +510,12 @@
                                     'single_post' => 'صفحه تکی مقاله',
                                     'cart' => 'صفحه سبد خرید',
                                     'checkout' => 'صفحه تسویه حساب',
-                                    'page' => 'سایر برگه‌ها (Pages)'
+                                    'page' => 'سایر برگه‌ها (Pages)',
+                                    '404page' => '۴۰۴',
+                                    '500page' => '۵۰۰',
+                                    'about' => 'صفحه درباره ما',
+                                    'account' => 'حساب کاربری',
+                                    'contact' => 'تماس با ما'
                                 ];
                                 $activePages = $data['ribbon']['active_pages'] ?? [];
                             @endphp
