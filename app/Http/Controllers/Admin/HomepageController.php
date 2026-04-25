@@ -118,6 +118,10 @@ class HomepageController extends Controller
         // 5. پردازش آرایه پویا: آکاردئون‌ها
         $data['info_accordions'] = $request->input('info_accordions', []);
 
+        if (!isset($data['ribbon']['active_pages'])) {
+            $data['ribbon']['active_pages'] = [];
+        }
+
         // ذخیره در دیتابیس
         DB::table('settings')->updateOrInsert(
             ['key' => 'homepage_data'],

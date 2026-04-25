@@ -490,10 +490,38 @@
                         <input type="checkbox" name="ribbon[is_visible]" value="1" {{ ($data['ribbon']['is_visible'] ?? 1) ? 'checked' : '' }} class="h-5 w-5 text-blue-600 rounded">
                         <label class="mr-3 font-medium text-gray-700">نمایش ریبون در سایت</label>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div><label class="block text-sm">متن اصلی</label><input type="text" name="ribbon[text]" value="{{ $data['ribbon']['text'] ?? '' }}" class="w-full border p-2 rounded"></div>
                         <div><label class="block text-sm">متن دکمه لینک</label><input type="text" name="ribbon[link_text]" value="{{ $data['ribbon']['link_text'] ?? '' }}" class="w-full border p-2 rounded"></div>
                         <div class="md:col-span-2"><label class="block text-sm">آدرس لینک</label><input type="text" name="ribbon[link_url]" value="{{ $data['ribbon']['link_url'] ?? '#' }}" dir="ltr" class="w-full border p-2 rounded"></div>
+                    </div>
+
+                    <div class="border-t pt-6 mt-4">
+                        <h3 class="font-bold text-lg mb-4 text-gray-800">نمایش در کدام صفحات؟</h3>
+                        <p class="text-sm text-gray-500 mb-4">ریبون فقط در صفحاتی که در زیر تیک زده شده‌اند نمایش داده می‌شود.</p>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            @php
+                                $pages = [
+                                    'home' => 'صفحه اصلی (Home)',
+                                    'category' => 'صفحات دسته‌بندی',
+                                    'single_product' => 'صفحه تکی محصولات',
+                                    'blog_archive' => 'لیست مقالات (وبلاگ)',
+                                    'single_post' => 'صفحه تکی مقاله',
+                                    'cart' => 'صفحه سبد خرید',
+                                    'checkout' => 'صفحه تسویه حساب',
+                                    'page' => 'سایر برگه‌ها (Pages)'
+                                ];
+                                $activePages = $data['ribbon']['active_pages'] ?? [];
+                            @endphp
+
+                            @foreach($pages as $key => $label)
+                            <label class="flex items-center p-3 border rounded bg-gray-50 cursor-pointer hover:bg-gray-100 transition">
+                                <input type="checkbox" name="ribbon[active_pages][]" value="{{ $key }}" {{ in_array($key, $activePages) ? 'checked' : '' }} class="h-4 w-4 text-blue-600 rounded border-gray-300">
+                                <span class="mr-3 text-sm font-medium">{{ $label }}</span>
+                            </label>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
 
