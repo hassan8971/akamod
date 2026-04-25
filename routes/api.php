@@ -50,6 +50,9 @@ Route::get('blog/categories', [BlogController::class, 'categories']);
 
 Route::post('/cart/check-discount', [CartController::class, 'checkDiscount']);
 
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'store']);
+
+Route::post('/contact/submit', [ContactController::class, 'store']);
 
 // این مسیر پیش‌فرض لاراول برای احراز هویت با Sanctum است
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -79,9 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('checkout', [CheckoutController::class, 'store']);
 
-    Route::post('/newsletter/subscribe', [NewsletterController::class, 'store']);
-
-    Route::post('/contact/submit', [ContactController::class, 'store']);
+    
 
 });
 

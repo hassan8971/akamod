@@ -515,7 +515,11 @@
                                     '500page' => '۵۰۰',
                                     'about' => 'صفحه درباره ما',
                                     'account' => 'حساب کاربری',
-                                    'contact' => 'تماس با ما'
+                                    'contact' => 'تماس با ما',
+                                    'faq' => 'سوالات متداول',
+                                    'login' => 'ورود',
+                                    'search' => 'جستجو',
+                                    
                                 ];
                                 $activePages = $data['ribbon']['active_pages'] ?? [];
                             @endphp
