@@ -326,12 +326,15 @@ class ProductController extends Controller
         
         // تشخیص اتوماتیک آدرس سرور (مثلاً: https://panel.akamode.com)
         $remoteStorage = rtrim(config('app.url'), '/') . '/storage/'; 
+      
+      $sortedImages = $product->images->sortBy('order');
 
-        foreach ($product->images as $img) {
+        foreach ($sortedImages as $img) {
             $imageUrls[] = [
                 'id' => $img->id,
                 'path' => $img->path,
-                'url' => $remoteStorage . ltrim($img->path, '/') 
+                'url' => $remoteStorage . ltrim($img->path, '/'),
+                'color' => $img->color // <-- اضافه کردن رنگ برای وردپرس
             ];
         }
 
@@ -349,7 +352,7 @@ class ProductController extends Controller
             if ($colorObj) {
                 $vArray['color'] = [
                     'name'         => $colorObj->name,
-                    'persian_name' => $colorObj->name, 
+                    'persian_name' => $colorObj->persian_name, // <-- Fixed to pull persian_name
                 ];
             } else {
                 $vArray['color'] = [
@@ -383,7 +386,13 @@ class ProductController extends Controller
             'images'                   => $imageUrls,
             'related_product_ids'      => $product->relatedProducts->pluck('id')->toArray(),
             'video_ids'                => $product->videos->pluck('id')->toArray(),
-            'packaging_option_ids'     => $product->packagingOptions->pluck('id')->toArray(),
+            'packaging_options'        => $product->packagingOptions->map(function($opt) {
+                return [
+                    'id'    => $opt->id,
+                    'name'  => $opt->name,
+                    'price' => $opt->price
+                ];
+            })->toArray(),
         ];
 
         try {
@@ -425,5 +434,15 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             Log::error('WP Product Delete Connection Error: ' . $e->getMessage());
         }
+    }
+
+    // متد جدید برای آپدیت رنگ تصویر
+    public function updateImageColor(Request $request, $id)
+    {
+        $image = \App\Models\ProductImage::findOrFail($id);
+        $image->color = $request->color;
+        $image->save();
+
+        return response()->json(['status' => 'success']);
     }
 }

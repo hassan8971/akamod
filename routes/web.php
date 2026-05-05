@@ -131,6 +131,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             return view('admin.contacts.index', compact('messages'));
         })->name('contacts.index');
 
+        Route::post('/images/{id}/color', [ProductController::class, 'updateImageColor'])->name('images.updateColor');
+
 
     });
 });

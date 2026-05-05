@@ -400,6 +400,10 @@
             <span class="text-blue-600">برای پخش ویدیو روی آن کلیک کنید.</span>
         </p>
 
+        @php
+            $productColors = $product->variants->pluck('color')->unique()->filter()->values();
+        @endphp
+
         <div x-data="imageManager(
             {{ json_encode($product->images->sortBy('order')->values()->map(function($img) {
                 $isVideo = \Illuminate\Support\Str::endsWith(strtolower($img->path), ['.mp4', '.mov', '.avi', '.webm']);
@@ -407,7 +411,9 @@
                     'id' => $img->id,
                     'url' => Storage::url($img->path),
                     'type' => $isVideo ? 'video' : 'image',
-                    'delete_url' => route('admin.images.destroy', $img->id)
+                    'color' => $img->color, // افزوده شدن مقدار رنگ فعلی
+                    'delete_url' => route('admin.images.destroy', $img->id),
+                    'update_color_url' => route('admin.images.updateColor', $img->id)
                 ];
             })) }}
         )">
@@ -452,6 +458,17 @@
                                 <span x-text="index + 1"></span>
                             </div>
                         </div>
+
+                        <template x-if="media.type === 'image'">
+                            <div class="mb-2 px-1">
+                                <select x-model="media.color" @change="updateColor(media.update_color_url, media.color)" class="text-xs w-full p-1 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">همه رنگ‌ها</option>
+                                    @foreach($productColors as $color)
+                                        <option value="{{ $color }}">{{ $color }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </template>
 
                         <div class="flex items-center justify-between bg-gray-50 rounded p-1 gap-2">
                             <button type="button" @click="move(index, -1)" :disabled="index === 0" :class="index === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-blue-100 text-blue-600'" class="flex-1 flex justify-center items-center py-1 rounded transition bg-white border border-gray-200">
@@ -582,6 +599,7 @@
                         $onlyImages = $product->images->filter(function($img) {
                             return !\Illuminate\Support\Str::endsWith(strtolower($img->path), ['.mp4', '.mov', '.avi', '.webm']);
                         });
+                        $productColors = $product->variants->pluck('color')->unique()->filter()->values();
                     @endphp
 
                     @if($onlyImages->isEmpty())
@@ -795,6 +813,20 @@
             images: initialImages,
             isSaving: false,
             activeVideo: null,
+
+            updateColor(url, newColor) {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({ color: newColor })
+                }).then(res => {
+                    // Optional: Show a tiny "saved" toast here
+                });
+            },
 
             move(index, direction) {
                 const newIndex = index + direction;
