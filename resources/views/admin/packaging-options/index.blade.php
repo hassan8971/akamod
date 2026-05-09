@@ -42,6 +42,12 @@
                     </td>
                     <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-left">
                         <a href="{{ route('admin.packaging-options.edit', $option) }}" class="text-blue-600 hover:text-blue-900">ویرایش</a>
+
+                        <form action="{{ route('admin.packaging-options.destroy', $option) }}" method="POST" onsubmit="return confirm('آیا از حذف این گزینه‌ی بسته‌بندی اطمینان دارید؟');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:text-red-900 font-medium">حذف</button>
+                        </form>
                     </td>
                 </tr>
                 @empty
