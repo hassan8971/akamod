@@ -72,6 +72,17 @@
                     <span>انواع بسته‌بندی</span>
                 </a>
 
+                <a href="{{ route('admin.shipping-methods.index') }}" 
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg space-x-reverse text-gray-200 hover:bg-slate-700 hover:text-white
+                        {{ request()->routeIs('admin.shipping-methods.*') ? 'bg-slate-900 text-white' : '' }}">
+                    
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v8m-6 4h6m2 0h.01M16 16v-4h4l3 3v5h-3m-6 0a2 2 0 10-4 0 2 2 0 004 0zm10 0a2 2 0 10-4 0 2 2 0 004 0z"></path>
+                    </svg>
+                    
+                    <span>روش های ارسال</span>
+                </a>
+
                 <a href="{{ route('admin.discounts.index') }}" 
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-200 space-x-reverse hover:bg-slate-700 hover:text-white
                         {{ request()->routeIs('admin.discounts.*') ? 'bg-slate-900 text-white' : '' }}">
