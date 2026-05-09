@@ -53,9 +53,18 @@
                     @endforeach
                 @endif
             </select>
+
+            {{-- 💡 بخش جدید: فقط وقتی یک دسته انتخاب شده باشد (selectedSlug خالی نباشد) نمایش داده می‌شود --}}
+            <div x-show="selectedSlug !== ''" x-transition class="mt-4 p-4 bg-blue-50 rounded border border-blue-100" style="display: none;">
+                <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="import_subcategories" value="1" class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                    <span class="mr-2 text-sm text-blue-800 font-medium">اضافه شدن خودکار تمامی زیردسته‌ها به این منو (تا ۳ سطح)</span>
+                </label>
+                <p class="text-xs text-blue-600 mt-1 mr-7">با فعال کردن این گزینه، سیستم تمام فرزندان این دسته‌بندی را پیدا کرده و به عنوان زیرمنوی همین آیتم در دیتابیس ثبت می‌کند.</p>
+            </div>
         </div>
 
-        {{-- فیلد نهایی لینک --}}
+        {{-- فیلد نهایی لینک (دست‌نخورده باقی می‌ماند) --}}
         <div>
             <label for="link_url" class="block text-sm font-medium text-gray-700">لینک نهایی</label>
             <input type="text" name="link_url" id="link_url" x-model="linkUrl" value="{{ old('link_url', $menuItem->link_url ?? '') }}"

@@ -60,10 +60,16 @@ class MenuItemController extends Controller
         if ($request->hasFile('image')) {
             $data['image_path'] = $request->file('image')->store('menu-items', 'public');
         }
+        
+        $menuItem = MenuItem::create($data);
 
-        MenuItem::create($data);
+        // 💡 دریافت خودکار زیردسته‌ها اگر تیک زده شده باشد
+        if ($request->has('import_subcategories') && str_starts_with($menuItem->link_url, '/category/')) {
+            $slug = str_replace('/category/', '', $menuItem->link_url);
+            $this->importSubcategoriesAsMenu($slug, $menuItem->id, $menuItem->menu_group);
+        }
 
-        return redirect()->route('admin.menu-items.index')->with('success', 'آیتم منو با موفقیت ایجاد شد.');
+        return redirect()->route('admin.menu-items.index')->with('success', 'آیتم منو با موفقیت اضافه شد.');
     }
 
     public function edit(MenuItem $menuItem)
@@ -107,6 +113,12 @@ class MenuItemController extends Controller
 
         $menuItem->update($data);
 
+        // 💡 دریافت خودکار زیردسته‌ها اگر تیک زده شده باشد (هنگام ویرایش)
+        if ($request->has('import_subcategories') && str_starts_with($menuItem->link_url, '/category/')) {
+            $slug = str_replace('/category/', '', $menuItem->link_url);
+            $this->importSubcategoriesAsMenu($slug, $menuItem->id, $menuItem->menu_group);
+        }
+
         return redirect()->route('admin.menu-items.index')->with('success', 'آیتم منو با موفقیت به‌روزرسانی شد.');
     }
 
@@ -120,5 +132,48 @@ class MenuItemController extends Controller
         $menuItem->delete();
         
         return redirect()->route('admin.menu-items.index')->with('success', 'آیتم منو (و زیرمجموعه‌های آن) با موفقیت حذف شد.');
+    }
+
+    /**
+     * متد کمکی برای وارد کردن خودکار زیردسته‌ها به عنوان زیرمنو
+     */
+    protected function importSubcategoriesAsMenu($categorySlug, $parentMenuId, $menuGroup)
+    {
+        // پیدا کردن دسته‌بندی به همراه فرزندان و نوادگان (تا 3 سطح)
+        $category = Category::with('children.children')->where('slug', $categorySlug)->first();
+        
+        if (!$category) return;
+
+        $orderLevel2 = 0;
+        foreach ($category->children as $child) {
+            // ساخت منو برای سطح دوم
+            $childMenu = MenuItem::updateOrCreate(
+                [
+                    'parent_id' => $parentMenuId,
+                    'link_url'  => '/category/' . $child->slug,
+                ],
+                [
+                    'name'       => $child->name,
+                    'menu_group' => $menuGroup,
+                    'order'      => $orderLevel2++,
+                ]
+            );
+
+            // ساخت منو برای سطح سوم (فرزندانِ فرزندان)
+            $orderLevel3 = 0;
+            foreach ($child->children as $grandChild) {
+                MenuItem::updateOrCreate(
+                    [
+                        'parent_id' => $childMenu->id,
+                        'link_url'  => '/category/' . $grandChild->slug,
+                    ],
+                    [
+                        'name'       => $grandChild->name,
+                        'menu_group' => $menuGroup,
+                        'order'      => $orderLevel3++,
+                    ]
+                );
+            }
+        }
     }
 }

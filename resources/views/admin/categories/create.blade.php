@@ -145,21 +145,33 @@
 
             <div class="space-y-6">
                 <div>
-                    <label for="image" class="block text-sm font-medium text-gray-700">تصویر دسته‌بندی</label>
-                    <input type="file" name="image" id="image" class="mt-1 block w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4 file:ml-4
-                        file:rounded-full file:border-0
-                        file:text-sm file:font-medium
-                        file:bg-blue-50 file:text-blue-700
-                        hover:file:bg-blue-100 cursor-pointer">
-                    @error('image') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    <div x-data="imageUploader()">
+                        <label for="image" class="block text-sm font-medium text-gray-700">تصویر دسته‌بندی</label>
+                        <input type="file" name="image" id="image" accept=".webp" @change="handleFile"
+                            class="mt-1 block w-full text-sm text-gray-500
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-md file:border-0
+                                    file:text-sm file:font-semibold
+                                    file:bg-blue-50 file:text-blue-700
+                                    hover:file:bg-blue-100">
+                        <p class="text-xs text-gray-500 mt-1">فرمت مجاز: فقط WEBP. حداکثر حجم: 2MB</p>
 
-                    @if(isset($category) && $category->image_path)
-                        <div class="mt-4 p-2 border border-gray-200 rounded inline-block bg-gray-50">
-                            <p class="text-xs text-gray-500 mb-2">تصویر فعلی:</p>
-                            <img src="{{ Storage::url($category->image_path) }}" alt="{{ $category->name }}" class="w-32 h-32 object-cover rounded-md shadow-sm">
+                        <p x-show="error" x-text="error" class="text-red-500 text-sm mt-1" style="display: none;"></p>
+
+                        <div x-show="preview" class="mt-4 p-4 border rounded-md bg-gray-50" style="display: none;">
+                            <p class="text-sm font-medium text-gray-700 mb-3">پیش‌نمایش تصویر:</p>
+                            <div class="flex items-start space-x-4 space-x-reverse">
+                                <img :src="preview" class="h-24 w-24 object-cover rounded-md shadow-sm border border-gray-200">
+                                <div class="text-sm text-gray-600 space-y-1">
+                                    <p><span class="font-semibold text-gray-800">فرمت:</span> <span x-text="type" class="uppercase"></span></p>
+                                    <p><span class="font-semibold text-gray-800">حجم:</span> <span x-text="size" dir="ltr"></span></p>
+                                    <p><span class="font-semibold text-gray-800">ابعاد:</span> <span x-text="dimensions" dir="ltr"></span></p>
+                                </div>
+                            </div>
                         </div>
-                    @endif
+
+                        @error('image') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
                 </div>
                 
                 <div>
@@ -201,4 +213,55 @@
         </div>
 
     </form>
+
+    <script>
+    function imageUploader() {
+        return {
+            preview: null,
+            size: null,
+            type: null,
+            dimensions: null,
+            error: null,
+            handleFile(event) {
+                const file = event.target.files[0];
+                this.error = null;
+                this.preview = null;
+                this.size = null;
+                this.type = null;
+                this.dimensions = null;
+
+                if (!file) return;
+
+                // Validate WEBP format explicitly
+                if (file.type !== 'image/webp' && !file.name.toLowerCase().endsWith('.webp')) {
+                    this.error = 'فقط آپلود تصاویر با فرمت WEBP مجاز است.';
+                    event.target.value = ''; // Reset the input
+                    return;
+                }
+
+                // Calculate file size
+                let sizeKB = file.size / 1024;
+                this.size = sizeKB > 1024 ? (sizeKB / 1024).toFixed(2) + ' MB' : sizeKB.toFixed(2) + ' KB';
+                
+                // Set file type extension
+                this.type = 'WEBP';
+
+                // Read file to get preview and dimensions
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.preview = e.target.result;
+                    
+                    // Create an off-screen image element to read dimensions
+                    const img = new Image();
+                    img.onload = () => {
+                        this.dimensions = img.width + ' × ' + img.height + ' px';
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+    }
+</script>
+
 @endsection
