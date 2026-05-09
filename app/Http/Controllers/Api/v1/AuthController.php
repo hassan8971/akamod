@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http; // 💡 این خط برای ارسال درخواست به sms.ir اضافه شد
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -35,21 +36,19 @@ class AuthController extends Controller
             ], 422);
         }
         
-        // 💡 تولید کد تصادفی ۵ رقمی (مطابق مستندات sms.ir)
         $otp = rand(10000, 99999);
 
         try {
-            // 💡 ارسال درخواست به مستندات sms.ir
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
                 'Accept'       => 'text/plain',
-                'x-api-key'    => 'mFGKjbt0cQLfFWk74E1mOmTiJrgdwApGTkykBrklBUhUYh5b' // کلید API سندباکس شما
+                'x-api-key'    => 'mFGKjbt0cQLfFWk74E1mOmTiJrgdwApGTkykBrklBUhUYh5b' 
             ])->post('https://api.sms.ir/v1/send/verify', [
                 'mobile'     => $mobile,
-                'templateId' => 123456, // ⚠️ شناسه الگو را پس از خروج از سندباکس به شناسه اصلی تغییر دهید
+                'templateId' => 123456, 
                 'parameters' => [
                     [
-                        'name'  => 'Code', // نام متغیر در الگو
+                        'name'  => 'Code',
                         'value' => (string) $otp
                     ]
                 ]
@@ -57,10 +56,7 @@ class AuthController extends Controller
 
             $result = $response->json();
 
-            // بررسی موفقیت‌آمیز بودن پاسخ sms.ir
             if ($response->successful() && isset($result['status']) && $result['status'] == 1) {
-                
-                // فقط در صورتی که پیامک واقعاً ارسال شد، کد را در کش ذخیره کن
                 Cache::put('otp_' . $mobile, $otp, now()->addMinutes(5));
 
                 return response()->json([
@@ -70,17 +66,27 @@ class AuthController extends Controller
                 ]);
             }
 
-            // خطا از سمت sms.ir (مثلاً اشتباه بودن templateId یا مسدود بودن خط)
+            // 💡 لاگ دقیق پاسخی که از سرور پیامک آمده اما موفق نبوده است
+            Log::error('SMS.ir Failed Response: ', [
+                'status_code' => $response->status(),
+                'body' => $response->body()
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'خطا در ارسال پیامک: ' . ($result['message'] ?? 'دلیل نامشخص')
             ], 500);
 
         } catch (\Exception $e) {
-            // خطای قطع شدن ارتباط با سرور یا تایم‌اوت
+            // 💡 لاگ دقیق خطای سرور (مثلا مشکل SSL، تایم اوت، یا قطعی اینترنت سرور لاراول)
+            Log::error('SMS.ir Exception/Crash: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'ارتباط با سرور پیامک برقرار نشد.'
+                'message' => 'ارتباط با سرور پیامک برقرار نشد. (لطفا لاگ لاراول را چک کنید)'
             ], 500);
         }
     }
