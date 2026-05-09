@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\ProductImageController;
 use App\Http\Controllers\Admin\VideoController;
 use App\Http\Controllers\Admin\AppLayoutController;
 use App\Http\Controllers\Admin\HomepageController;
+use App\Http\Controllers\Admin\ShippingMethodController;
 use App\Http\Controllers\Auth\LoginController as UserLoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\OtpLoginController;
@@ -133,6 +134,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::post('/images/{id}/color', [ProductController::class, 'updateImageColor'])->name('images.updateColor');
 
+        Route::resource('shipping-methods', ShippingMethodController::class)->except(['show']);
 
     });
 });

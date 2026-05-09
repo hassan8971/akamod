@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\v1\BlogController;
 use App\Http\Controllers\Api\v1\CartController;
 use App\Http\Controllers\Api\v1\NewsletterController;
 use App\Http\Controllers\Api\v1\ContactController;
+use App\Models\ShippingMethod;
 use App\Http\Controllers\Api\Bridge\BridgeProductController;
 use App\Http\Middleware\CheckAdminBridge;
 use App\Http\Controllers\Api\Bridge\BridgeDashboardController;
@@ -53,6 +54,21 @@ Route::post('/cart/check-discount', [CartController::class, 'checkDiscount']);
 Route::post('/newsletter/subscribe', [NewsletterController::class, 'store']);
 
 Route::post('/contact/submit', [ContactController::class, 'store']);
+
+Route::get('/shipping-methods', function () {
+    $methods = ShippingMethod::where('is_active', true)->get();
+    
+    $config = [];
+    foreach($methods as $method) {
+        $config[$method->method_key] = [
+            'title' => $method->title,
+            'cost'  => (int) $method->cost,
+            'desc'  => $method->description
+        ];
+    }
+    
+    return response()->json(['success' => true, 'data' => $config]);
+});
 
 // این مسیر پیش‌فرض لاراول برای احراز هویت با Sanctum است
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
