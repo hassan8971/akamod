@@ -10,11 +10,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http; // 💡 این خط برای ارسال درخواست به sms.ir اضافه شد
 
 class AuthController extends Controller
 {
     /**
-     * Get mobile number, "send" (simulate) OTP.
+     * Get mobile number, send real OTP via sms.ir
      */
     public function sendOtp(Request $request)
     {
@@ -34,16 +35,54 @@ class AuthController extends Controller
             ], 422);
         }
         
-        $otp = '1234';
+        // 💡 تولید کد تصادفی ۵ رقمی (مطابق مستندات sms.ir)
+        $otp = rand(10000, 99999);
 
-        // Save in cache for 5 minutes
-        Cache::put('otp_' . $mobile, $otp, now()->addMinutes(5));
+        try {
+            // 💡 ارسال درخواست به مستندات sms.ir
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept'       => 'text/plain',
+                'x-api-key'    => 'mFGKjbt0cQLfFWk74E1mOmTiJrgdwApGTkykBrklBUhUYh5b' // کلید API سندباکس شما
+            ])->post('https://api.sms.ir/v1/send/verify', [
+                'mobile'     => $mobile,
+                'templateId' => 123456, // ⚠️ شناسه الگو را پس از خروج از سندباکس به شناسه اصلی تغییر دهید
+                'parameters' => [
+                    [
+                        'name'  => 'Code', // نام متغیر در الگو
+                        'value' => (string) $otp
+                    ]
+                ]
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'کد تایید (1234) با موفقیت "ارسال" شد.',
-            'mobile' => $mobile
-        ]);
+            $result = $response->json();
+
+            // بررسی موفقیت‌آمیز بودن پاسخ sms.ir
+            if ($response->successful() && isset($result['status']) && $result['status'] == 1) {
+                
+                // فقط در صورتی که پیامک واقعاً ارسال شد، کد را در کش ذخیره کن
+                Cache::put('otp_' . $mobile, $otp, now()->addMinutes(5));
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'کد تایید با موفقیت ارسال شد.',
+                    'mobile' => $mobile
+                ]);
+            }
+
+            // خطا از سمت sms.ir (مثلاً اشتباه بودن templateId یا مسدود بودن خط)
+            return response()->json([
+                'success' => false,
+                'message' => 'خطا در ارسال پیامک: ' . ($result['message'] ?? 'دلیل نامشخص')
+            ], 500);
+
+        } catch (\Exception $e) {
+            // خطای قطع شدن ارتباط با سرور یا تایم‌اوت
+            return response()->json([
+                'success' => false,
+                'message' => 'ارتباط با سرور پیامک برقرار نشد.'
+            ], 500);
+        }
     }
 
     /**
@@ -53,7 +92,8 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'mobile' => 'required|string',
-            'code' => 'required|numeric|digits:4',
+            // 💡 طول کد را به 5 رقم تغییر دادیم چون کد تولید شده ما 5 رقمی است
+            'code' => 'required|numeric|digits:5', 
         ]);
 
         $mobile = $this->normalizeMobile($validated['mobile']);
@@ -65,15 +105,12 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'کد منقضی شده است. لطفا دوباره تلاش کنید.'], 419);
         }
 
-        
         if ($validated['code'] != $cachedOtp) {
             return response()->json(['success' => false, 'message' => 'کد وارد شده صحیح نمی‌باشد.'], 401);
         }
-
         
         Cache::forget($cacheKey);
 
-        
         $user = null;
         $guard = 'web';
         $abilities = ['role:user'];
