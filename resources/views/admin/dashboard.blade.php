@@ -3,7 +3,7 @@
 @section('title', 'داشبورد ادمین')
 
 @section('content')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ asset('js/chart.js') }}"></script>
 
 <div dir="rtl">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">داشبورد</h1>
