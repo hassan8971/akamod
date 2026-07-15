@@ -324,7 +324,7 @@ class ProductController extends Controller
         // 2. آماده‌سازی لیست تصاویر با لینک کامل دانلود
         $imageUrls = [];
         
-        // تشخیص اتوماتیک آدرس سرور (مثلاً: https://panel.akamode.com)
+        // تشخیص اتوماتیک آدرس سرور (مثلاً: https://panel.akaleather.com)
         $remoteStorage = rtrim(config('app.url'), '/') . '/storage/'; 
       
       $sortedImages = $product->images->sortBy('order');
@@ -397,7 +397,7 @@ class ProductController extends Controller
 
         try {
             // آدرس سایت وردپرسی (حتماً در فایل env. لاراول خود، WP_AKAMODE_SECRET را تعریف کنید)
-            $wpUrl = env('WP_AKAMODE_URL', 'https://akamode.com') . '/wp-json/akamode/v1/sync-product';
+            $wpUrl = env('WP_AKAMODE_URL', 'https://akaleather.com') . '/wp-json/akamode/v1/sync-product';
             $secret = env('WP_AKAMODE_SECRET', 'slafLKlskggslf@34rfkljw');
 
             $response = Http::timeout(10)->withHeaders([
@@ -418,7 +418,7 @@ class ProductController extends Controller
     private function deleteProductFromWordPress($productId)
     {
         try {
-            $wpUrl = env('WP_AKAMODE_URL', 'https://akamode.com') . '/wp-json/akamode/v1/delete-product';
+            $wpUrl = env('WP_AKAMODE_URL', 'https://akaleather.com') . '/wp-json/akamode/v1/delete-product';
             $secret = env('WP_AKAMODE_SECRET', 'slafLKlskggslf@34rfkljw');
 
             // Send a POST request with the ID to be deleted

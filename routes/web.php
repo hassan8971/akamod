@@ -38,7 +38,7 @@ Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
 });
 
-Route::domain('dash.akamode.com')->group(function () {
+// Route::domain('dash.akaleather.com')->group(function () {
 // Admin Login
 Route::post('admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
 
@@ -154,4 +154,4 @@ Route::middleware('guest')->group(function () {
     Route::post('login/verify', [OtpLoginController::class, 'verifyOtp'])->name('otp.verify');
 });
   
-});
+// });
