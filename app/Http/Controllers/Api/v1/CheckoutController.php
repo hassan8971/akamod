@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log; // 💡 برای ثبت خطاهای احتمالی بانک
+use Illuminate\Support\Facades\Http;
 
 class CheckoutController extends Controller
 {
@@ -179,31 +180,40 @@ class CheckoutController extends Controller
                 ];
 
                 try {
-                    // غیرفعال کردن کش WSDL برای جلوگیری از خطاهای احتمالی
-                    $client = new \SoapClient("https://pec.shaparak.ir/NewIPGServices/Sale/SaleService.asmx?WSDL", ['cache_wsdl' => WSDL_CACHE_NONE]);
-                    $result = $client->SalePaymentRequest(["requestData" => $params]);
+                    // ارسال درخواست به فایل واسط (پروکسی) در هاست اصلی
+                    $response = Http::asForm()->post('https://akaleather.com/pec-proxy.php', [
+                        'secret' => 'AkaLeather_PROXY_1402!@#',
+                        'action' => 'sale',
+                        'params' => json_encode($params)
+                    ]);
                     
-                    if (isset($result->SalePaymentRequestResult->Token) && $result->SalePaymentRequestResult->Status === 0) {
-                        $token = $result->SalePaymentRequestResult->Token;
+                    $resData = json_decode($response->body());
+
+                    if (isset($resData->success) && $resData->success === true) {
+                        $result = $resData->data;
                         
-                        // ذخیره موقت توکن در دیتابیس
-                        $order->update(['transaction_code' => $token]);
-                        
-                        return response()->json([
-                            'success' => true,
-                            'payment_url' => "https://pec.shaparak.ir/NewIPG/?Token=" . $token
-                        ], 200);
+                        if (isset($result->SalePaymentRequestResult->Token) && $result->SalePaymentRequestResult->Status === 0) {
+                            $token = $result->SalePaymentRequestResult->Token;
+                            $order->update(['transaction_code' => $token]);
+                            
+                            return response()->json([
+                                'success' => true,
+                                'payment_url' => "https://pec.shaparak.ir/NewIPG/?Token=" . $token
+                            ], 200);
+                        } else {
+                            return response()->json([
+                                'success' => false, 
+                                'message' => 'خطا در درگاه: ' . ($result->SalePaymentRequestResult->Message ?? 'نامشخص')
+                            ], 500);
+                        }
                     } else {
-                        return response()->json([
-                            'success' => false, 
-                            'message' => 'خطا در اتصال به درگاه: ' . ($result->SalePaymentRequestResult->Message ?? 'نامشخص')
-                        ], 500);
+                        throw new \Exception($resData->message ?? 'خطای ناشناخته از پروکسی');
                     }
                 } catch (\Exception $ex) {
-                    Log::error("Parsian GateWay Error: " . $ex->getMessage());
+                    Log::error("Parsian Proxy GateWay Error: " . $ex->getMessage());
                     return response()->json([
                         'success' => false, 
-                        'message' => 'خطای سرور در ارتباط با بانک'
+                        'message' => 'خطای سرور واسط در ارتباط با بانک'
                     ], 500);
                 }
             }
@@ -264,21 +274,32 @@ class CheckoutController extends Controller
         ];
 
         try {
-            $client = new \SoapClient('https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService.asmx?WSDL', ['cache_wsdl' => WSDL_CACHE_NONE]);
-            $result = $client->ConfirmPayment(["requestData" => $params]);
+            // ارسال درخواست تایید به فایل واسط (پروکسی) در هاست اصلی
+            $response = Http::asForm()->post('https://akaleather.com/pec-proxy.php', [
+                'secret' => 'AkaLeather_PROXY_1402!@#',
+                'action' => 'confirm',
+                'params' => json_encode($params)
+            ]);
             
-            if (isset($result->ConfirmPaymentResult->Status) && $result->ConfirmPaymentResult->Status == 0) {
-                // پرداخت موفقیت‌آمیز بود!
-                $order->update([
-                    'payment_status' => 'confirmed',
-                    'transaction_code' => $RRN // شماره پیگیری را جایگزین توکن می‌کنیم
-                ]);
-                return redirect($frontendSuccessUrl);
+            $resData = json_decode($response->body());
+
+            if (isset($resData->success) && $resData->success === true) {
+                $result = $resData->data;
+                
+                if (isset($result->ConfirmPaymentResult->Status) && $result->ConfirmPaymentResult->Status == 0) {
+                    $order->update([
+                        'payment_status' => 'confirmed',
+                        'transaction_code' => $RRN 
+                    ]);
+                    return redirect($frontendSuccessUrl);
+                } else {
+                    return redirect($frontendFailedUrl);
+                }
             } else {
-                return redirect($frontendFailedUrl);
+                throw new \Exception($resData->message ?? 'خطای ناشناخته از پروکسی در مرحله تایید');
             }
         } catch (\Exception $ex) {
-            Log::error("Parsian Verify Error: " . $ex->getMessage());
+            Log::error("Parsian Proxy Verify Error: " . $ex->getMessage());
             return redirect($frontendFailedUrl);
         }
     }
