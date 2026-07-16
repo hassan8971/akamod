@@ -36,8 +36,22 @@ class AuthController extends Controller
             ], 422);
         }
         
-        $otp = rand(10000, 99999);
+        // ==========================================
+        // حالت تستی: تنظیم یک کد ثابت و دور زدن پنل پیامک
+        // ==========================================
+        $otp = 12345; // کد تستی شما
 
+        // ذخیره کد در کش لاراول برای ۵ دقیقه
+        Cache::put('otp_' . $mobile, $otp, now()->addMinutes(5));
+
+        // برگرداندن پاسخ موفقیت‌آمیز به فرانت‌اند بدون نیاز به درگیری با sms.ir
+        return response()->json([
+            'success' => true,
+            'message' => 'کد تایید (حالت تستی) با موفقیت ایجاد شد.',
+            'mobile' => $mobile
+        ]);
+
+        /* // کدهای اصلی ارسال پیامک (فعلا کامنت شده‌اند تا زمانی که پنل شما فعال شود)
         try {
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
@@ -58,7 +72,6 @@ class AuthController extends Controller
 
             if ($response->successful() && isset($result['status']) && $result['status'] == 1) {
                 Cache::put('otp_' . $mobile, $otp, now()->addMinutes(5));
-
                 return response()->json([
                     'success' => true,
                     'message' => 'کد تایید با موفقیت ارسال شد.',
@@ -66,7 +79,6 @@ class AuthController extends Controller
                 ]);
             }
 
-            // 💡 لاگ دقیق پاسخی که از سرور پیامک آمده اما موفق نبوده است
             Log::error('SMS.ir Failed Response: ', [
                 'status_code' => $response->status(),
                 'body' => $response->body()
@@ -78,7 +90,6 @@ class AuthController extends Controller
             ], 500);
 
         } catch (\Exception $e) {
-            // 💡 لاگ دقیق خطای سرور (مثلا مشکل SSL، تایم اوت، یا قطعی اینترنت سرور لاراول)
             Log::error('SMS.ir Exception/Crash: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
@@ -89,6 +100,7 @@ class AuthController extends Controller
                 'message' => 'ارتباط با سرور پیامک برقرار نشد. (لطفا لاگ لاراول را چک کنید)'
             ], 500);
         }
+        */
     }
 
     /**
