@@ -12,6 +12,7 @@ use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log; // 💡 برای ثبت خطاهای احتمالی بانک
 
 class CheckoutController extends Controller
 {
@@ -127,16 +128,9 @@ class CheckoutController extends Controller
             
             $shippingMethodName = $validated['shipping_method'] === 'pishaz' ? 'پست پیشتاز' : 'تیپاکس';
             
+            // 💡 وضعیت پرداخت در لحظه ثبت سفارش همیشه باید pending باشد
             $payment_status = 'pending';
             $order_status = 'pending';
-
-            if ($validated['payment_method'] == 'online') {
-                $payment_status = 'confirmed';
-            }
-
-            if ($validated['payment_method'] == 'cod') {
-                $payment_status = 'pending';
-            }
 
             $order = Order::create([
                 'user_id' => $user->id,
@@ -165,16 +159,127 @@ class CheckoutController extends Controller
 
             DB::commit();
 
+            // ==========================================
+            // 💡 اتصال به درگاه پارسیان در صورت پرداخت آنلاین
+            // ==========================================
+            if ($validated['payment_method'] == 'online') {
+                $pin = 'KTb88t1W5v81863Aay85';
+                $amountInRial = $total * 10; // تبدیل تومان به ریال
+                
+                // آدرسی که بانک پس از پرداخت کاربر را به آن برمی‌گرداند
+                $callbackUrl = url('/api/v1/payment/verify'); 
+
+                $params = [
+                    "LoginAccount" => $pin,
+                    "Amount"       => $amountInRial,
+                    "OrderId"      => $order->id,
+                    "CallBackUrl"  => $callbackUrl,
+                    "AdditionalData" => "",
+                    "Originator"   => ""
+                ];
+
+                try {
+                    // غیرفعال کردن کش WSDL برای جلوگیری از خطاهای احتمالی
+                    $client = new \SoapClient("https://pec.shaparak.ir/NewIPGServices/Sale/SaleService.asmx?WSDL", ['cache_wsdl' => WSDL_CACHE_NONE]);
+                    $result = $client->SalePaymentRequest(["requestData" => $params]);
+                    
+                    if (isset($result->SalePaymentRequestResult->Token) && $result->SalePaymentRequestResult->Status === 0) {
+                        $token = $result->SalePaymentRequestResult->Token;
+                        
+                        // ذخیره موقت توکن در دیتابیس
+                        $order->update(['transaction_code' => $token]);
+                        
+                        return response()->json([
+                            'success' => true,
+                            'payment_url' => "https://pec.shaparak.ir/NewIPG/?Token=" . $token
+                        ], 200);
+                    } else {
+                        return response()->json([
+                            'success' => false, 
+                            'message' => 'خطا در اتصال به درگاه: ' . ($result->SalePaymentRequestResult->Message ?? 'نامشخص')
+                        ], 500);
+                    }
+                } catch (\Exception $ex) {
+                    Log::error("Parsian GateWay Error: " . $ex->getMessage());
+                    return response()->json([
+                        'success' => false, 
+                        'message' => 'خطای سرور در ارتباط با بانک'
+                    ], 500);
+                }
+            }
+
+            // ==========================================
+            // اگر پرداخت آنلاین نبود (نقدی یا کارت به کارت)
+            // ==========================================
             return response()->json([
                 'success' => true,
                 'message' => 'سفارش شما با موفقیت ثبت شد!',
                 'order_code' => $orderCode,
-                'redirect_url' => route('checkout.success', $order)
-            ], 201); // 201 Created
+                // به جای هدایت به لاراول، مستقیماً آدرس وردپرس را می‌دهیم
+                'redirect_url' => "https://akaleather.com/checkout/success/{$order->id}" 
+            ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => 'خطایی در ثبت سفارش رخ داد: ' . $e->getMessage()], 500);
+            Log::error("Checkout Store Error: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'خطایی در ثبت سفارش رخ داد.'], 500);
+        }
+    }
+
+
+    // ==========================================
+    // 💡 متد وریفای بعد از بازگشت کاربر از بانک
+    // ==========================================
+    public function verifyPayment(Request $request)
+    {
+        $token = $request->input('Token');
+        $status = $request->input('status');
+        $orderId = $request->input('OrderId');
+        $terminalNo = $request->input('TerminalNo');
+        $RRN = $request->input('RRN');
+
+        // آدرس‌های بازگشت به فرانت‌اند (وردپرس)
+        $frontendSuccessUrl = "https://akaleather.com/checkout/success/{$orderId}?status=success&rrn={$RRN}";
+        $frontendFailedUrl  = "https://akaleather.com/checkout/success/{$orderId}?status=failed";
+
+        // اگر کاربر لغو کرد یا اروری رخ داد
+        if (!$token || $status != 0) {
+            return redirect($frontendFailedUrl); 
+        }
+
+        $order = Order::find($orderId);
+        if (!$order) {
+            return redirect($frontendFailedUrl); 
+        }
+
+        // اگر قبلاً تایید شده، فقط کاربر را ریدایرکت کن
+        if ($order->payment_status === 'confirmed') {
+            return redirect($frontendSuccessUrl); 
+        }
+
+        $pin = 'KTb88t1W5v81863Aay85';
+        $params = [
+            "LoginAccount" => $pin,
+            "Token" => $token
+        ];
+
+        try {
+            $client = new \SoapClient('https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService.asmx?WSDL', ['cache_wsdl' => WSDL_CACHE_NONE]);
+            $result = $client->ConfirmPayment(["requestData" => $params]);
+            
+            if (isset($result->ConfirmPaymentResult->Status) && $result->ConfirmPaymentResult->Status == 0) {
+                // پرداخت موفقیت‌آمیز بود!
+                $order->update([
+                    'payment_status' => 'confirmed',
+                    'transaction_code' => $RRN // شماره پیگیری را جایگزین توکن می‌کنیم
+                ]);
+                return redirect($frontendSuccessUrl);
+            } else {
+                return redirect($frontendFailedUrl);
+            }
+        } catch (\Exception $ex) {
+            Log::error("Parsian Verify Error: " . $ex->getMessage());
+            return redirect($frontendFailedUrl);
         }
     }
 }
