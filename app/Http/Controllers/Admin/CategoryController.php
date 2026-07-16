@@ -179,7 +179,7 @@ class CategoryController extends Controller
         ];
 
         try {
-            $wpUrl = env('WP_AKAMODE_URL', 'https://akamode.com') . '/wp-json/akamode/v1/sync-category';
+            $wpUrl = env('WP_AKAMODE_URL', 'https://akaleather.com') . '/wp-json/akamode/v1/sync-category';
             $secret = env('WP_AKAMODE_SECRET', 'slafLKlskggslf@34rfkljw');
 
             $response = \Illuminate\Support\Facades\Http::timeout(10)->withHeaders([

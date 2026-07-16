@@ -137,7 +137,7 @@ class HomepageController extends Controller
     private function syncToWordPress($data)
     {
         try {
-            $wpUrl = env('WP_AKAMODE_URL', 'http://akamode.com') . '/wp-json/akamode/v1/sync-homepage';
+            $wpUrl = env('WP_AKAMODE_URL', 'http://akaleather.com') . '/wp-json/akamode/v1/sync-homepage';
             $secret = env('WP_AKAMODE_SECRET', 'slafLKlskggslf@34rfkljw');
 
             $response = Http::timeout(15)->withHeaders([

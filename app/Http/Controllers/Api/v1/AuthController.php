@@ -96,10 +96,14 @@ class AuthController extends Controller
      */
     public function verifyOtp(Request $request)
     {
+        // اضافه کردن پیام‌های خطای سفارشی فارسی
         $validated = $request->validate([
             'mobile' => 'required|string',
-            // 💡 طول کد را به 5 رقم تغییر دادیم چون کد تولید شده ما 5 رقمی است
-            'code' => 'required|numeric|digits:5', 
+            'code'   => 'required|numeric|digits:5', 
+        ], [
+            'code.required' => 'وارد کردن کد تایید الزامی است.',
+            'code.numeric'  => 'کد تایید فقط باید شامل اعداد باشد.',
+            'code.digits'   => 'کد تایید باید دقیقاً ۵ رقم باشد.',
         ]);
 
         $mobile = $this->normalizeMobile($validated['mobile']);

@@ -218,14 +218,114 @@ class CheckoutController extends Controller
             // 7. Commit the transaction
             DB::commit();
 
-            // Redirect to a "Thank You" page
-            return redirect()->route('checkout.success', $order)
-                ->with('success', 'سفارش شما با موفقیت ثبت شد!');
+            // ==========================================
+            // اتصال به درگاه پارسیان در صورت پرداخت آنلاین
+            // ==========================================
+            if ($request->payment_method == 'online') {
+                $pin = 'KTb88t1W5v81863Aay85'; // پین دریافتی از ایمیل
+                // مبلغ باید به ریال باشد
+                $amountInRial = $total * 10;
+                
+                // آدرس مسیری که بعداً برای بازگشت از بانک می‌سازیم (مثلا در api.php)
+                // توجه: این آدرس باید در اینترنت در دسترس باشد
+                $callbackUrl = url('/api/v1/payment/verify'); 
+
+                $params = [
+                    "LoginAccount" => $pin,
+                    "Amount"       => $amountInRial,
+                    "OrderId"      => $order->id, // شماره سفارش برای بانک
+                    "CallBackUrl"  => $callbackUrl,
+                    "AdditionalData" => "",
+                    "Originator"   => ""
+                ];
+
+                try {
+                    $client = new \SoapClient("https://pec.shaparak.ir/NewIPGServices/Sale/SaleService.asmx?WSDL");
+                    $result = $client->SalePaymentRequest(["requestData" => $params]);
+                    
+                    if (isset($result->SalePaymentRequestResult->Token) && $result->SalePaymentRequestResult->Status === 0) {
+                        $token = $result->SalePaymentRequestResult->Token;
+                        
+                        // ذخیره توکن در دیتابیس برای پیگیری‌های بعدی
+                        $order->update(['transaction_code' => $token]);
+                        
+                        // ارسال لینک پرداخت به وردپرس
+                        return response()->json([
+                            'success' => true,
+                            'payment_url' => "https://pec.shaparak.ir/NewIPG/?Token=" . $token
+                        ]);
+                    } else {
+                        return response()->json([
+                            'success' => false, 
+                            'message' => 'خطا در اتصال به درگاه: ' . $result->SalePaymentRequestResult->Message
+                        ], 500);
+                    }
+                } catch (\Exception $ex) {
+                    return response()->json([
+                        'success' => false, 
+                        'message' => 'خطای سرور در اتصال به بانک: ' . $ex->getMessage()
+                    ], 500);
+                }
+            }
+
+            // برای روش‌های پرداخت غیر آنلاین (نقدی یا کارت به کارت)
+            return response()->json([
+                'success' => true,
+                'redirect_url' => "https://akaleather.com/checkout/success/{$order->id}" // آدرس صفحه موفقیت در وردپرس
+            ]);
 
         } catch (\Exception $e) {
-            // If anything went wrong, roll back the database changes
             DB::rollBack();
-            return redirect()->back()->with('error', 'خطایی رخ داد: ' . $e->getMessage())->withInput();
+            return response()->json(['success' => false, 'message' => 'خطایی رخ داد: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // ==========================================
+    // متد جدید برای وریفای کردن تراکنش بعد از بازگشت از بانک
+    // ==========================================
+    public function verifyPayment(Request $request)
+    {
+        $token = $request->input('Token');
+        $status = $request->input('status');
+        $orderId = $request->input('OrderId');
+        $terminalNo = $request->input('TerminalNo');
+        $RRN = $request->input('RRN');
+
+        // آدرس صفحه موفقیت یا خطای فرانت‌اند (وردپرس)
+        $frontendSuccessUrl = "https://akaleather.com/checkout/success/{$orderId}?status=success&rrn={$RRN}";
+        $frontendFailedUrl  = "https://akaleather.com/checkout/success/{$orderId}?status=failed";
+
+        if (!$token || $status != 0) {
+            return redirect($frontendFailedUrl); // پرداخت در سمت کاربر لغو شده یا خطا داشته
+        }
+
+        $order = Order::find($orderId);
+        if (!$order || $order->payment_status === 'confirmed') {
+            return redirect($frontendSuccessUrl); // قبلا تایید شده
+        }
+
+        $pin = 'KTb88t1W5v81863Aay85';
+        $params = [
+            "LoginAccount" => $pin,
+            "Token" => $token
+        ];
+
+        try {
+            $client = new \SoapClient('https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService.asmx?WSDL');
+            $result = $client->ConfirmPayment(["requestData" => $params]);
+            
+            if ($result->ConfirmPaymentResult->Status == 0) {
+                // تایید موفقیت آمیز
+                $order->update([
+                    'payment_status' => 'confirmed',
+                    'transaction_code' => $RRN // شماره پیگیری را آپدیت می‌کنیم
+                ]);
+                return redirect($frontendSuccessUrl);
+            } else {
+                return redirect($frontendFailedUrl);
+            }
+        } catch (\Exception $ex) {
+            return redirect($frontendFailedUrl);
         }
     }
 

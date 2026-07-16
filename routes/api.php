@@ -70,6 +70,8 @@ Route::get('/shipping-methods', function () {
     return response()->json(['success' => true, 'data' => $config]);
 });
 
+Route::post('/payment/verify', [\App\Http\Controllers\CheckoutController::class, 'verifyPayment']);
+
 // این مسیر پیش‌فرض لاراول برای احراز هویت با Sanctum است
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
