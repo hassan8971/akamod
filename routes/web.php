@@ -43,7 +43,7 @@ Route::domain('dash.akaleather.com')->group(function () {
     Route::middleware('guest:admin')->name('admin.')->group(function () {
 
         Route::get('/', function () {
-            return redirect()->route('login');
+            return redirect()->route('admin.login');
         })->name('home');
 
         Route::get('login', [AdminLoginController::class, 'showLoginForm'])->name('login');
