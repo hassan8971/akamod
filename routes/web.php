@@ -139,15 +139,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:admin'])->group(functi
     });
 });
 
-// --- روت‌های ورود ادمین (دسترسی آزاد) ---
-    Route::middleware('guest:admin')->name('admin.')->group(function () {
         Route::get('login', [AdminLoginController::class, 'showLoginForm'])->name('login');
         Route::post('login', [AdminLoginController::class, 'loginWithPassword'])->name('login.password');
         
         Route::post('login/otp', [AdminLoginController::class, 'sendOtp'])->name('otp.send');
         Route::get('login/verify', [AdminLoginController::class, 'showVerifyForm'])->name('verify.form');
         Route::post('login/verify', [AdminLoginController::class, 'verifyOtp'])->name('otp.verify');
-    });
+   
 
     // --- روت‌های محافظت شده داشبورد ادمین ---
     Route::post('admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
