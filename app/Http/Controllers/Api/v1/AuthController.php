@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 class AuthController extends Controller
 {
     /**
-     * Get mobile number, send real OTP via sms.ir
+     * Get mobile number, send real OTP via IranPayamak (Faraz SMS API V1)
      */
     public function sendOtp(Request $request)
     {
@@ -36,71 +36,64 @@ class AuthController extends Controller
             ], 422);
         }
         
-        // ==========================================
-        // حالت تستی: تنظیم یک کد ثابت و دور زدن پنل پیامک
-        // ==========================================
-        $otp = 12345; // کد تستی شما
+        // تولید کد ۵ رقمی (هماهنگ با تغییرات قبلی فرانت‌اند)
+        $otp = rand(10000, 99999);
 
-        // ذخیره کد در کش لاراول برای ۵ دقیقه
-        Cache::put('otp_' . $mobile, $otp, now()->addMinutes(5));
-
-        // برگرداندن پاسخ موفقیت‌آمیز به فرانت‌اند بدون نیاز به درگیری با sms.ir
-        return response()->json([
-            'success' => true,
-            'message' => 'کد تایید (حالت تستی) با موفقیت ایجاد شد.',
-            'mobile' => $mobile
-        ]);
-
-        /* // کدهای اصلی ارسال پیامک (فعلا کامنت شده‌اند تا زمانی که پنل شما فعال شود)
         try {
+            // اطلاعات جدید پنل فراز اس‌ام‌اس
+            $apiKey  = 'UY7DZPKVoti8cVCAlb1TyEV2cGvSzvzal4M3wog8XABjFAtBk2'; 
+            $pattern = 'lXVJA5vH5g'; 
+            $sender  = '50002178584000'; 
+
             $response = Http::withHeaders([
+                'Api-Key'      => $apiKey,
                 'Content-Type' => 'application/json',
-                'Accept'       => 'text/plain',
-                'x-api-key'    => 'mFGKjbt0cQLfFWk74E1mOmTiJrgdwApGTkykBrklBUhUYh5b' 
-            ])->post('https://api.sms.ir/v1/send/verify', [
-                'mobile'     => $mobile,
-                'templateId' => 123456, 
-                'parameters' => [
-                    [
-                        'name'  => 'Code',
-                        'value' => (string) $otp
-                    ]
-                ]
+                'Accept'       => 'application/json',
+            ])->post('https://api.iranpayamak.com/ws/v1/sms/pattern', [
+                'code'          => $pattern,
+                'attributes'    => [
+                    'code' => (string) $otp
+                ],
+                'recipient'     => $mobile,
+                'line_number'   => $sender,
+                'number_format' => 'english'
             ]);
 
-            $result = $response->json();
-
-            if ($response->successful() && isset($result['status']) && $result['status'] == 1) {
+            // اگر درخواست موفق بود
+            if ($response->successful()) {
+                // ذخیره کد در کش لاراول برای ۵ دقیقه
                 Cache::put('otp_' . $mobile, $otp, now()->addMinutes(5));
+
                 return response()->json([
                     'success' => true,
                     'message' => 'کد تایید با موفقیت ارسال شد.',
-                    'mobile' => $mobile
+                    'mobile'  => $mobile
                 ]);
             }
 
-            Log::error('SMS.ir Failed Response: ', [
+            // لاگ خطا در صورتی که پنل پیامک اروری برگرداند (برای دیباگ)
+            Log::error('IranPayamak Failed Response: ', [
                 'status_code' => $response->status(),
-                'body' => $response->body()
+                'body'        => $response->body()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'خطا در ارسال پیامک: ' . ($result['message'] ?? 'دلیل نامشخص')
+                'message' => 'خطا در ارسال پیامک از سمت پنل.'
             ], 500);
 
         } catch (\Exception $e) {
-            Log::error('SMS.ir Exception/Crash: ' . $e->getMessage(), [
+            // لاگ خطای ارتباطی سرور (مثل تایم‌اوت)
+            Log::error('IranPayamak Exception: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'ارتباط با سرور پیامک برقرار نشد. (لطفا لاگ لاراول را چک کنید)'
+                'message' => 'ارتباط با سرور پیامک برقرار نشد. (لطفا لاگ سرور را چک کنید)'
             ], 500);
         }
-        */
     }
 
     /**
