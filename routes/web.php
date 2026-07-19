@@ -29,9 +29,7 @@ use App\Models\NewsletterSubscriber;
 use App\Models\ContactMessage;
 
 
-Route::get('/', function () {
-    return redirect()->route('login');
-})->name('home');
+
 
 
 Route::prefix('checkout')->name('checkout.')->group(function () {
@@ -43,6 +41,11 @@ Route::domain('dash.akaleather.com')->group(function () {
 
     // --- ۱. روت‌های ورود ادمین (دسترسی آزاد) ---
     Route::middleware('guest:admin')->name('admin.')->group(function () {
+
+        Route::get('/', function () {
+            return redirect()->route('login');
+        })->name('home');
+
         Route::get('login', [AdminLoginController::class, 'showLoginForm'])->name('login');
         
         // تغییر آدرس POST به login/password برای جلوگیری از درخواست ایمیل توسط لاراول
