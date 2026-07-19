@@ -39,119 +39,121 @@ Route::prefix('checkout')->name('checkout.')->group(function () {
 });
 
 Route::domain('dash.akaleather.com')->group(function () {
-// Admin Login
-Route::post('admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
-
-// Admin Dashboard (Protected)
-Route::prefix('admin')->name('admin.')->middleware(['auth:admin'])->group(function () {
-    Route::middleware(['auth:admin'])->group(function () {
-        Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-        Route::resource('categories', CategoryController::class)->except(['show']);
-        Route::resource('products', ProductController::class)->except(['show']);
 
 
-        Route::post('products/{product}/variants', [ProductVariantController::class, 'store'])
-            ->name('products.variants.store');
-
-        // GET /admin/variants/{variant}/edit
-        // (Matches the 'edit' link on the product page)
-        Route::get('variants/{variant}/edit', [ProductVariantController::class, 'edit'])
-            ->name('variants.edit');
-        
-        // PUT /admin/variants/{variant}
-        // (Matches the form action in the edit.blade.php file)
-        Route::put('variants/{variant}', [ProductVariantController::class, 'update'])
-            ->name('variants.update');
-
-        // DELETE /admin/variants/{variant}
-        // (Matches the 'delete' form on the product page)
-        Route::delete('variants/{variant}', [ProductVariantController::class, 'destroy'])
-            ->name('variants.destroy');
-        
-            // POST /admin/products/{product}/images
-        // (This uploads images *for* a specific product)
-        Route::post('products/{product}/images', [ProductImageController::class, 'store'])
-            ->name('products.images.store');
-        
-        // DELETE /admin/images/{image}
-        // (Deletes a specific image by its ID)
-        Route::delete('images/{image}', [ProductImageController::class, 'destroy'])
-            ->name('images.destroy');
-
-        Route::resource('videos', VideoController::class)->except(['show']);
-        Route::resource('sizes', SizeController::class)->except(['show']);
-        Route::resource('colors', ColorController::class)->except(['show']);
-        Route::resource('buy-sources', BuySourceController::class)->except(['show']);
-        Route::resource('menu-items', MenuItemController::class)->except(['show']);
-        Route::resource('users', UserController::class)->only(['index', 'show']);
-
-        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
-        Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-        Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
-
-        Route::resource('packaging-options', PackagingOptionController::class)->except(['show']);
-        Route::resource('discounts', DiscountController::class)->except(['show']);
-
-        Route::resource('blog-categories', BlogCategoryController::class)->except(['show']);
-        Route::resource('posts', PostController::class);
-
-        Route::post('images/reorder', [ProductImageController::class, 'reorder'])->name('images.reorder');  
-
-        Route::get('layouts', [AppLayoutController::class, 'index'])->name('layouts.index');
-        
-        // صفحه ساز (Drag & Drop Builder) برای یک صفحه خاص
-        Route::get('layouts/{page}/builder', [AppLayoutController::class, 'edit'])->name('layouts.builder');
-        
-        // ذخیره یک سکشن (بخش) جدید
-        Route::post('layouts/{page}/sections', [AppLayoutController::class, 'storeSection'])->name('layouts.section.store');
-        
-        // تغییر ترتیب سکشن‌ها (AJAX)
-        Route::post('layouts/reorder', [AppLayoutController::class, 'reorder'])->name('layouts.reorder');
-        
-        // حذف یک سکشن
-        Route::delete('layouts/sections/{section}', [AppLayoutController::class, 'destroySection'])->name('layouts.section.delete');
-
-        Route::get('layouts/create', [AppLayoutController::class, 'create'])->name('layouts.create');
-        Route::post('layouts', [AppLayoutController::class, 'store'])->name('layouts.store');
-        Route::post('layouts/{page}/save-all', [AppLayoutController::class, 'saveAll'])->name('layouts.save_all');
-        Route::post('layouts/upload-image', [AppLayoutController::class, 'uploadImage'])->name('layouts.upload_image');
-        Route::post('layouts/upload-video', [AppLayoutController::class, 'uploadVideo'])->name('layouts.upload_video');
-
-        Route::get('/homepage-settings', [HomepageController::class, 'edit'])->name('homepage.edit');
-        Route::put('/homepage-settings', [HomepageController::class, 'update'])->name('homepage.update');
-
-        // Add this to your existing admin route group
-        Route::get('/newsletter', function () {
-            $subscribers = NewsletterSubscriber::orderBy('created_at', 'desc')->paginate(20);
-            return view('admin.newsletter.index', compact('subscribers'));
-        })->name('newsletter.index');
-
-
-        Route::get('/contacts', function () {
-            $messages = ContactMessage::orderBy('created_at', 'desc')->paginate(20);
-            return view('admin.contacts.index', compact('messages'));
-        })->name('contacts.index');
-
-        Route::post('/images/{id}/color', [ProductController::class, 'updateImageColor'])->name('images.updateColor');
-
-        Route::resource('shipping-methods', ShippingMethodController::class)->except(['show']);
-
-    });
-});
-
-// --- روت‌های ورود ادمین (دسترسی آزاد) ---
+    // --- ۱. روت‌های ورود ادمین (دسترسی آزاد) ---
     Route::middleware('guest:admin')->name('admin.')->group(function () {
         Route::get('login', [AdminLoginController::class, 'showLoginForm'])->name('login');
-        Route::post('login', [AdminLoginController::class, 'loginWithPassword'])->name('login.password');
+        
+        // تغییر آدرس POST به login/password برای جلوگیری از درخواست ایمیل توسط لاراول
+        Route::post('login/password', [AdminLoginController::class, 'loginWithPassword'])->name('login.password');
         
         Route::post('login/otp', [AdminLoginController::class, 'sendOtp'])->name('otp.send');
         Route::get('login/verify', [AdminLoginController::class, 'showVerifyForm'])->name('verify.form');
         Route::post('login/verify', [AdminLoginController::class, 'verifyOtp'])->name('otp.verify');
     });
 
-    // --- روت‌های محافظت شده داشبورد ادمین ---
+    // --- ۲. روت خروج ادمین ---
     Route::post('admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
-    
+
+
+    // Admin Dashboard (Protected)
+    Route::prefix('admin')->name('admin.')->middleware(['auth:admin'])->group(function () {
+        Route::middleware(['auth:admin'])->group(function () {
+            Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+            Route::resource('categories', CategoryController::class)->except(['show']);
+            Route::resource('products', ProductController::class)->except(['show']);
+
+
+            Route::post('products/{product}/variants', [ProductVariantController::class, 'store'])
+                ->name('products.variants.store');
+
+            // GET /admin/variants/{variant}/edit
+            // (Matches the 'edit' link on the product page)
+            Route::get('variants/{variant}/edit', [ProductVariantController::class, 'edit'])
+                ->name('variants.edit');
+            
+            // PUT /admin/variants/{variant}
+            // (Matches the form action in the edit.blade.php file)
+            Route::put('variants/{variant}', [ProductVariantController::class, 'update'])
+                ->name('variants.update');
+
+            // DELETE /admin/variants/{variant}
+            // (Matches the 'delete' form on the product page)
+            Route::delete('variants/{variant}', [ProductVariantController::class, 'destroy'])
+                ->name('variants.destroy');
+            
+                // POST /admin/products/{product}/images
+            // (This uploads images *for* a specific product)
+            Route::post('products/{product}/images', [ProductImageController::class, 'store'])
+                ->name('products.images.store');
+            
+            // DELETE /admin/images/{image}
+            // (Deletes a specific image by its ID)
+            Route::delete('images/{image}', [ProductImageController::class, 'destroy'])
+                ->name('images.destroy');
+
+            Route::resource('videos', VideoController::class)->except(['show']);
+            Route::resource('sizes', SizeController::class)->except(['show']);
+            Route::resource('colors', ColorController::class)->except(['show']);
+            Route::resource('buy-sources', BuySourceController::class)->except(['show']);
+            Route::resource('menu-items', MenuItemController::class)->except(['show']);
+            Route::resource('users', UserController::class)->only(['index', 'show']);
+
+            Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+            Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+            Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+
+            Route::resource('packaging-options', PackagingOptionController::class)->except(['show']);
+            Route::resource('discounts', DiscountController::class)->except(['show']);
+
+            Route::resource('blog-categories', BlogCategoryController::class)->except(['show']);
+            Route::resource('posts', PostController::class);
+
+            Route::post('images/reorder', [ProductImageController::class, 'reorder'])->name('images.reorder');  
+
+            Route::get('layouts', [AppLayoutController::class, 'index'])->name('layouts.index');
+            
+            // صفحه ساز (Drag & Drop Builder) برای یک صفحه خاص
+            Route::get('layouts/{page}/builder', [AppLayoutController::class, 'edit'])->name('layouts.builder');
+            
+            // ذخیره یک سکشن (بخش) جدید
+            Route::post('layouts/{page}/sections', [AppLayoutController::class, 'storeSection'])->name('layouts.section.store');
+            
+            // تغییر ترتیب سکشن‌ها (AJAX)
+            Route::post('layouts/reorder', [AppLayoutController::class, 'reorder'])->name('layouts.reorder');
+            
+            // حذف یک سکشن
+            Route::delete('layouts/sections/{section}', [AppLayoutController::class, 'destroySection'])->name('layouts.section.delete');
+
+            Route::get('layouts/create', [AppLayoutController::class, 'create'])->name('layouts.create');
+            Route::post('layouts', [AppLayoutController::class, 'store'])->name('layouts.store');
+            Route::post('layouts/{page}/save-all', [AppLayoutController::class, 'saveAll'])->name('layouts.save_all');
+            Route::post('layouts/upload-image', [AppLayoutController::class, 'uploadImage'])->name('layouts.upload_image');
+            Route::post('layouts/upload-video', [AppLayoutController::class, 'uploadVideo'])->name('layouts.upload_video');
+
+            Route::get('/homepage-settings', [HomepageController::class, 'edit'])->name('homepage.edit');
+            Route::put('/homepage-settings', [HomepageController::class, 'update'])->name('homepage.update');
+
+            // Add this to your existing admin route group
+            Route::get('/newsletter', function () {
+                $subscribers = NewsletterSubscriber::orderBy('created_at', 'desc')->paginate(20);
+                return view('admin.newsletter.index', compact('subscribers'));
+            })->name('newsletter.index');
+
+
+            Route::get('/contacts', function () {
+                $messages = ContactMessage::orderBy('created_at', 'desc')->paginate(20);
+                return view('admin.contacts.index', compact('messages'));
+            })->name('contacts.index');
+
+            Route::post('/images/{id}/color', [ProductController::class, 'updateImageColor'])->name('images.updateColor');
+
+            Route::resource('shipping-methods', ShippingMethodController::class)->except(['show']);
+
+        });
+    });
+
 
   
 });
