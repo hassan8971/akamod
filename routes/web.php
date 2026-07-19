@@ -43,7 +43,7 @@ Route::domain('dash.akaleather.com')->group(function () {
 Route::post('admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
 
 // Admin Dashboard (Protected)
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth:admin'])->group(function () {
     Route::middleware(['auth:admin'])->group(function () {
         Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::resource('categories', CategoryController::class)->except(['show']);
@@ -139,19 +139,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
-Route::post('logout', [UserLoginController::class, 'logout'])->name('logout');
+// --- روت‌های ورود ادمین (دسترسی آزاد) ---
+    Route::middleware('guest:admin')->name('admin.')->group(function () {
+        Route::get('login', [AdminLoginController::class, 'showLoginForm'])->name('login');
+        Route::post('login', [AdminLoginController::class, 'loginWithPassword'])->name('login.password');
+        
+        Route::post('login/otp', [AdminLoginController::class, 'sendOtp'])->name('otp.send');
+        Route::get('login/verify', [AdminLoginController::class, 'showVerifyForm'])->name('verify.form');
+        Route::post('login/verify', [AdminLoginController::class, 'verifyOtp'])->name('otp.verify');
+    });
 
-// --- User Auth Routes (OTP Passwordless) ---
-Route::middleware('guest')->group(function () {
-    // Step 1: Show mobile number form
-    Route::get('login', [OtpLoginController::class, 'showLoginForm'])->name('login');
-    // Step 1: Handle mobile number submission
-    Route::post('login', [OtpLoginController::class, 'sendOtp'])->name('otp.send');
+    // --- روت‌های محافظت شده داشبورد ادمین ---
+    Route::post('admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
     
-    // Step 2: Show verification code form
-    Route::get('login/verify', [OtpLoginController::class, 'showVerifyForm'])->name('otp.verify.form');
-    // Step 2: Handle code submission
-    Route::post('login/verify', [OtpLoginController::class, 'verifyOtp'])->name('otp.verify');
-});
+
   
 });
