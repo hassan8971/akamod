@@ -43,7 +43,7 @@ class AuthController extends Controller
             // اطلاعات جدید پنل فراز اس‌ام‌اس
             $apiKey  = 'UY7DZPKVoti8cVCAlb1TyEV2cGvSzvzal4M3wog8XABjFAtBk2'; 
             $pattern = 'lXVJA5vH5g'; 
-            $sender  = '20002022'; 
+            $sender  = '50002178584000'; 
 
             $response = Http::withHeaders([
                 'Api-Key'      => $apiKey,
