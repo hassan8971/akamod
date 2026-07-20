@@ -43,7 +43,7 @@ class CheckoutController extends Controller
             'shipping_method' => 'required|string|in:pishaz,tipax',
             'packaging_id' => 'required|integer|min:0',
             'discount_code' => 'nullable|string',
-            'payment_method' => 'required|string|in:online,cod,card',
+            'payment_method' => 'required|string|in:online,cod,card,digipay',
             'transaction_code' => 'nullable|string|required_if:payment_method,card|max:255',
 
             // Cart items
@@ -219,6 +219,67 @@ class CheckoutController extends Controller
             }
 
             // ==========================================
+            // اتصال به درگاه دیجی پی
+            // ==========================================
+            if ($validated['payment_method'] == 'digipay') {
+                $amountInRial = $total * 10;
+                $callbackUrl = url('/api/v1/payment/digipay/verify');
+
+                $baseUrl = rtrim(env('DIGIPAY_BASE_URL', 'https://api.mydigipay.com/digipay/api'), '/');
+                
+                try {
+                    $authString = base64_encode(env('DIGIPAY_CLIENT_ID') . ':' . env('DIGIPAY_CLIENT_SECRET'));
+
+                    // دریافت توکن لاگین دیجی‌پی
+                    $tokenResponse = Http::asForm()
+                        ->withHeaders([
+                            'Authorization' => 'Basic ' . $authString
+                        ])
+                        ->post($baseUrl . '/oauth/token', [
+                            'username' => env('DIGIPAY_USERNAME'),
+                            'password' => env('DIGIPAY_PASSWORD'),
+                            'grant_type' => 'password'
+                        ]);
+
+                    if (!$tokenResponse->successful()) {
+                        Log::error("Digipay Token Error: " . $tokenResponse->body());
+                        return response()->json(['success' => false, 'message' => 'خطا در دریافت توکن دیجی‌پی'], 500);
+                    }
+                    $accessToken = $tokenResponse->json('access_token');
+
+                    // درخواست تیکت خرید
+                    $ticketResponse = Http::withHeaders([
+                            'Agent' => 'WEB',
+                            'Digipay-Version' => '2022-02-02',
+                            'Authorization' => 'Bearer ' . $accessToken,
+                            'Content-Type' => 'application/json'
+                        ])
+                        ->post($baseUrl . '/tickets/business?type=11', [
+                            'amount' => $amountInRial,
+                            'cellNumber' => $validated['address']['phone'], 
+                            'providerId' => (string)$order->id,
+                            'callbackUrl' => $callbackUrl
+                        ]);
+
+                    if ($ticketResponse->successful() && $ticketResponse->json('ticket')) {
+                        $order->update(['transaction_code' => $ticketResponse->json('ticket')]);
+                        
+                        return response()->json([
+                            'success' => true,
+                            'payment_url' => $ticketResponse->json('redirectUrl') 
+                        ]);
+                    } else {
+                        Log::error("Digipay Ticket Error: " . $ticketResponse->body());
+                        return response()->json(['success' => false, 'message' => 'خطا در ایجاد تیکت پرداخت دیجی‌پی'], 500);
+                    }
+
+                } catch (\Exception $ex) {
+                    Log::error("Digipay Connection Error: " . $ex->getMessage());
+                    return response()->json(['success' => false, 'message' => 'خطای سرور در اتصال به دیجی‌پی'], 500);
+                }
+            }
+
+            // ==========================================
             // اگر پرداخت آنلاین نبود (نقدی یا کارت به کارت)
             // ==========================================
             return response()->json([
@@ -233,6 +294,74 @@ class CheckoutController extends Controller
             DB::rollBack();
             Log::error("Checkout Store Error: " . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'خطایی در ثبت سفارش رخ داد.'], 500);
+        }
+    }
+
+    // ==========================================
+    // متد وریفای اختصاصی دیجی‌پی
+    // ==========================================
+    public function verifyDigipayPayment(Request $request)
+    {
+        $amount = $request->input('amount'); 
+        $providerId = $request->input('providerId'); 
+        $trackingCode = $request->input('trackingCode'); 
+        $resultStatus = $request->input('result'); 
+        $type = $request->input('type'); 
+
+        $order = Order::find($providerId);
+
+        if (!$order) {
+            return redirect("https://akaleather.com/checkout/success/0?status=failed");
+        }
+
+        $frontendSuccessUrl = "https://akaleather.com/checkout/success/{$order->id}?status=success&rrn={$trackingCode}";
+        $frontendFailedUrl  = "https://akaleather.com/checkout/success/{$order->id}?status=failed";
+
+        if ($resultStatus !== 'SUCCESS') {
+            return redirect($frontendFailedUrl);
+        }
+
+        $baseUrl = rtrim(env('DIGIPAY_BASE_URL', 'https://api.mydigipay.com/digipay/api'), '/');
+
+        try {
+            $authString = base64_encode(env('DIGIPAY_CLIENT_ID') . ':' . env('DIGIPAY_CLIENT_SECRET'));
+            $tokenResponse = Http::asForm()
+                ->withHeaders(['Authorization' => 'Basic ' . $authString])
+                ->post($baseUrl . '/oauth/token', [
+                    'username' => env('DIGIPAY_USERNAME'),
+                    'password' => env('DIGIPAY_PASSWORD'),
+                    'grant_type' => 'password'
+                ]);
+
+            if ($tokenResponse->successful()) {
+                $accessToken = $tokenResponse->json('access_token');
+                $verifyType = $type ?? 11; 
+
+                $verifyResponse = Http::withHeaders([
+                        'Authorization' => 'Bearer ' . $accessToken,
+                        'Content-Type' => 'application/json'
+                    ])
+                    ->post($baseUrl . "/purchases/verify?type={$verifyType}", [
+                        'trackingCode' => (string)$trackingCode,
+                        'providerId' => (string)$providerId
+                    ]);
+
+                if ($verifyResponse->successful() && $verifyResponse->json('result.status') === 0) { 
+                    $order->update([
+                        'payment_status' => 'confirmed',
+                        'transaction_code' => $trackingCode
+                    ]);
+                    return redirect($frontendSuccessUrl);
+                } else {
+                    Log::error("Digipay Verify Failed: " . $verifyResponse->body());
+                }
+            }
+            
+            return redirect($frontendFailedUrl);
+
+        } catch (\Exception $ex) {
+            Log::error("Digipay Verify Exception: " . $ex->getMessage());
+            return redirect($frontendFailedUrl);
         }
     }
 

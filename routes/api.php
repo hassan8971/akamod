@@ -72,6 +72,11 @@ Route::get('/shipping-methods', function () {
 
 Route::post('/payment/verify', [\App\Http\Controllers\CheckoutController::class, 'verifyPayment']);
 
+Route::post('/api/v1/payment/digipay/verify', [CheckoutController::class, 'verifyDigipayPayment'])
+    ->name('payment.digipay.verify')
+    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+
+    
 // این مسیر پیش‌فرض لاراول برای احراز هویت با Sanctum است
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
