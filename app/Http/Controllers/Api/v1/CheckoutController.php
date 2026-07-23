@@ -482,9 +482,9 @@ class CheckoutController extends Controller
     {
         Log::error('RESTORE INVENTORY STARTED FOR ORDER: ' . $order->id);
         
+        // بررسی می‌کنیم که سفارش از قبل لغو نشده باشد
         if ($order->status !== 'failed' && $order->status !== 'cancelled') {
             
-            // استفاده از ()get برای واکشی قطعی از دیتابیس
             $items = $order->items()->get(); 
             
             if ($items->isEmpty()) {
@@ -501,13 +501,14 @@ class CheckoutController extends Controller
                 }
             }
             
+            // 💡 تغییر وضعیت‌ها به cancelled برای هماهنگی با فرانت‌اند
             $order->update([
-                'status' => 'failed',
-                'payment_status' => 'failed'
+                'status' => 'cancelled',
+                'payment_status' => 'cancelled'
             ]);
-            Log::error('ORDER STATUS UPDATED TO FAILED.');
+            Log::error('ORDER STATUS UPDATED TO CANCELLED.');
         } else {
-            Log::error('RESTORE SKIPPED: Order was already failed.');
+            Log::error('RESTORE SKIPPED: Order was already failed/cancelled.');
         }
     }
 }
