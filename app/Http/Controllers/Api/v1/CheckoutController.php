@@ -314,7 +314,7 @@ class CheckoutController extends Controller
                 'message' => 'سفارش شما با موفقیت ثبت شد!',
                 'order_code' => $orderCode,
                 // به جای هدایت به لاراول، مستقیماً آدرس وردپرس را می‌دهیم
-                'redirect_url' => "https://akaleather.com/checkout/success/{$order->id}" 
+                'redirect_url' => "https://akaleather.com/payment-result/?order_id={$order->id}&status=success"
             ], 201);
 
         } catch (\Exception $e) {
@@ -338,7 +338,7 @@ class CheckoutController extends Controller
         $order = Order::find($providerId);
 
         if (!$order) {
-            return redirect("https://akaleather.com/checkout/success/0?status=failed");
+            return redirect("https://akaleather.com/payment-result/?order_id=0&status=cancelled");
         }
 
         // اگر قبلاً تایید شده
@@ -346,8 +346,8 @@ class CheckoutController extends Controller
             return redirect("https://akaleather.com/checkout/success/{$order->id}?status=success&rrn={$trackingCode}"); 
         }
 
-        $frontendSuccessUrl = "https://akaleather.com/checkout/success/{$order->id}?status=success&rrn={$trackingCode}";
-        $frontendFailedUrl  = "https://akaleather.com/checkout/success/{$order->id}?status=failed";
+        $frontendSuccessUrl = "https://akaleather.com/payment-result/?order_id={$order->id}&status=success&rrn={$trackingCode}";
+        $frontendFailedUrl  = "https://akaleather.com/payment-result/?order_id={$order->id}&status=cancelled";
 
         // لغو توسط کاربر یا خطای اولیه
         if ($resultStatus !== 'SUCCESS') {
@@ -418,9 +418,9 @@ class CheckoutController extends Controller
         $terminalNo = $request->input('TerminalNo');
         $RRN = $request->input('RRN');
 
-        $frontendSuccessUrl = "https://akaleather.com/checkout/success/{$orderId}?status=success&rrn={$RRN}";
-        $frontendFailedUrl  = "https://akaleather.com/checkout/success/{$orderId}?status=failed";
-
+        $frontendSuccessUrl = "https://akaleather.com/payment-result/?order_id={$orderId}&status=success&rrn={$RRN}";
+        $frontendFailedUrl  = "https://akaleather.com/payment-result/?order_id={$orderId}&status=cancelled";
+        
         $order = Order::find($orderId);
         if (!$order) {
             Log::error('VERIFY ERROR: Order ' . $orderId . ' not found!');
