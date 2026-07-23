@@ -478,17 +478,15 @@ class CheckoutController extends Controller
     // ==========================================
     private function restoreOrderInventory($order)
     {
-        // جلوگیری از بازگردانی تکراری
+        Log::info('Restore Inventory Started for Order: ' . $order->id); // لاگ تست
         if ($order->status !== 'failed' && $order->status !== 'cancelled') {
             foreach ($order->items as $item) {
-                // پیدا کردن متغیر محصول و برگرداندن موجودی
                 $variant = \App\Models\ProductVariant::find($item->product_variant_id);
                 if ($variant) {
                     $variant->increment('stock', $item->quantity);
+                    Log::info('Stock restored for variant: ' . $variant->id); // لاگ تست
                 }
             }
-            
-            // تغییر وضعیت سفارش به ناموفق
             $order->update([
                 'status' => 'failed',
                 'payment_status' => 'failed'
