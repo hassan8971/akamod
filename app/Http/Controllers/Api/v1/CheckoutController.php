@@ -157,7 +157,7 @@ class CheckoutController extends Controller
             // Save order items
             $order->items()->createMany($itemsToCreate);
 
-            DB::commit();
+            
 
             // ==========================================
             // 💡 اتصال به درگاه پارسیان در صورت پرداخت آنلاین
@@ -194,6 +194,8 @@ class CheckoutController extends Controller
                         if (isset($result->SalePaymentRequestResult->Token) && $result->SalePaymentRequestResult->Status === 0) {
                             $token = $result->SalePaymentRequestResult->Token;
                             $order->update(['transaction_code' => $token]);
+
+                            DB::commit();
                             
                             return response()->json([
                                 'success' => true,
@@ -262,6 +264,8 @@ class CheckoutController extends Controller
 
                     if ($ticketResponse->successful() && $ticketResponse->json('ticket')) {
                         $order->update(['transaction_code' => $ticketResponse->json('ticket')]);
+
+                        DB::commit();
                         
                         return response()->json([
                             'success' => true,
@@ -281,6 +285,10 @@ class CheckoutController extends Controller
             // ==========================================
             // اگر پرداخت آنلاین نبود (نقدی یا کارت به کارت)
             // ==========================================
+
+            DB::commit();
+
+            
             return response()->json([
                 'success' => true,
                 'message' => 'سفارش شما با موفقیت ثبت شد!',
