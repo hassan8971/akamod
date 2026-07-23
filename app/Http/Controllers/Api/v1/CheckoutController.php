@@ -314,10 +314,17 @@ class CheckoutController extends Controller
             return redirect("https://akaleather.com/checkout/success/0?status=failed");
         }
 
+        // اگر قبلاً تایید شده
+        if ($order->payment_status === 'confirmed') {
+            return redirect("https://akaleather.com/checkout/success/{$order->id}?status=success&rrn={$trackingCode}"); 
+        }
+
         $frontendSuccessUrl = "https://akaleather.com/checkout/success/{$order->id}?status=success&rrn={$trackingCode}";
         $frontendFailedUrl  = "https://akaleather.com/checkout/success/{$order->id}?status=failed";
 
+        // لغو توسط کاربر یا خطای اولیه
         if ($resultStatus !== 'SUCCESS') {
+            $this->restoreOrderInventory($order); // بازگردانی موجودی
             return redirect($frontendFailedUrl);
         }
 
@@ -354,13 +361,17 @@ class CheckoutController extends Controller
                     return redirect($frontendSuccessUrl);
                 } else {
                     Log::error("Digipay Verify Failed: " . $verifyResponse->body());
+                    $this->restoreOrderInventory($order); // خطای تایید نهایی
                 }
+            } else {
+                $this->restoreOrderInventory($order); // خطای توکن
             }
             
             return redirect($frontendFailedUrl);
 
         } catch (\Exception $ex) {
             Log::error("Digipay Verify Exception: " . $ex->getMessage());
+            $this->restoreOrderInventory($order); // خطای شبکه یا اکسپشن
             return redirect($frontendFailedUrl);
         }
     }
@@ -377,15 +388,10 @@ class CheckoutController extends Controller
         $terminalNo = $request->input('TerminalNo');
         $RRN = $request->input('RRN');
 
-        // آدرس‌های بازگشت به فرانت‌اند (وردپرس)
         $frontendSuccessUrl = "https://akaleather.com/checkout/success/{$orderId}?status=success&rrn={$RRN}";
         $frontendFailedUrl  = "https://akaleather.com/checkout/success/{$orderId}?status=failed";
 
-        // اگر کاربر لغو کرد یا اروری رخ داد
-        if (!$token || $status != 0) {
-            return redirect($frontendFailedUrl); 
-        }
-
+        // پیدا کردن سفارش قبل از بررسی خطا
         $order = Order::find($orderId);
         if (!$order) {
             return redirect($frontendFailedUrl); 
@@ -396,6 +402,12 @@ class CheckoutController extends Controller
             return redirect($frontendSuccessUrl); 
         }
 
+        // اگر کاربر لغو کرد یا اروری رخ داد -> بازگردانی موجودی
+        if (!$token || $status != 0) {
+            $this->restoreOrderInventory($order);
+            return redirect($frontendFailedUrl); 
+        }
+
         $pin = 'KTb88t1W5v81863Aay85';
         $params = [
             "LoginAccount" => $pin,
@@ -403,7 +415,6 @@ class CheckoutController extends Controller
         ];
 
         try {
-            // ارسال درخواست تایید به فایل واسط (پروکسی) در هاست اصلی
             $response = Http::asForm()->post('https://akaleather.com/pec-proxy.php', [
                 'secret' => 'AkaLeather_PROXY_1402!@#',
                 'action' => 'confirm',
@@ -422,6 +433,7 @@ class CheckoutController extends Controller
                     ]);
                     return redirect($frontendSuccessUrl);
                 } else {
+                    $this->restoreOrderInventory($order); // بازگردانی موجودی
                     return redirect($frontendFailedUrl);
                 }
             } else {
@@ -429,7 +441,31 @@ class CheckoutController extends Controller
             }
         } catch (\Exception $ex) {
             Log::error("Parsian Proxy Verify Error: " . $ex->getMessage());
+            $this->restoreOrderInventory($order); // بازگردانی موجودی در صورت خطای سرور
             return redirect($frontendFailedUrl);
+        }
+    }
+
+    // ==========================================
+    // متد کمکی برای بازگردانی موجودی در صورت لغو پرداخت
+    // ==========================================
+    private function restoreOrderInventory($order)
+    {
+        // جلوگیری از بازگردانی تکراری
+        if ($order->status !== 'failed' && $order->status !== 'cancelled') {
+            foreach ($order->items as $item) {
+                // پیدا کردن متغیر محصول و برگرداندن موجودی
+                $variant = \App\Models\ProductVariant::find($item->product_variant_id);
+                if ($variant) {
+                    $variant->increment('stock', $item->quantity);
+                }
+            }
+            
+            // تغییر وضعیت سفارش به ناموفق
+            $order->update([
+                'status' => 'failed',
+                'payment_status' => 'failed'
+            ]);
         }
     }
 }
