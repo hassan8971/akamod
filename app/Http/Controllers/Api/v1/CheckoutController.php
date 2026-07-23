@@ -409,6 +409,9 @@ class CheckoutController extends Controller
     // ==========================================
     public function verifyPayment(Request $request)
     {
+        // ثبت تمام دیتای دریافتی از بانک برای دیباگ دقیق
+        Log::error('BANK CALLBACK DATA: ' . json_encode($request->all()));
+
         $token = $request->input('Token');
         $status = $request->input('status');
         $orderId = $request->input('OrderId');
@@ -418,19 +421,18 @@ class CheckoutController extends Controller
         $frontendSuccessUrl = "https://akaleather.com/checkout/success/{$orderId}?status=success&rrn={$RRN}";
         $frontendFailedUrl  = "https://akaleather.com/checkout/success/{$orderId}?status=failed";
 
-        // پیدا کردن سفارش قبل از بررسی خطا
         $order = Order::find($orderId);
         if (!$order) {
+            Log::error('VERIFY ERROR: Order ' . $orderId . ' not found!');
             return redirect($frontendFailedUrl); 
         }
 
-        // اگر قبلاً تایید شده، فقط کاربر را ریدایرکت کن
         if ($order->payment_status === 'confirmed') {
             return redirect($frontendSuccessUrl); 
         }
 
-        // اگر کاربر لغو کرد یا اروری رخ داد -> بازگردانی موجودی
         if (!$token || $status != 0) {
+            Log::error('PAYMENT CANCELLED BY USER. Status: ' . $status);
             $this->restoreOrderInventory($order);
             return redirect($frontendFailedUrl); 
         }
@@ -478,19 +480,34 @@ class CheckoutController extends Controller
     // ==========================================
     private function restoreOrderInventory($order)
     {
-        Log::info('Restore Inventory Started for Order: ' . $order->id); // لاگ تست
+        Log::error('RESTORE INVENTORY STARTED FOR ORDER: ' . $order->id);
+        
         if ($order->status !== 'failed' && $order->status !== 'cancelled') {
-            foreach ($order->items as $item) {
+            
+            // استفاده از ()get برای واکشی قطعی از دیتابیس
+            $items = $order->items()->get(); 
+            
+            if ($items->isEmpty()) {
+                Log::error('RESTORE FAILED: No items found for order ' . $order->id);
+            }
+
+            foreach ($items as $item) {
                 $variant = \App\Models\ProductVariant::find($item->product_variant_id);
                 if ($variant) {
                     $variant->increment('stock', $item->quantity);
-                    Log::info('Stock restored for variant: ' . $variant->id); // لاگ تست
+                    Log::error('RESTORE SUCCESS: Added ' . $item->quantity . ' to variant ' . $variant->id);
+                } else {
+                    Log::error('RESTORE ERROR: Variant not found in DB -> ' . $item->product_variant_id);
                 }
             }
+            
             $order->update([
                 'status' => 'failed',
                 'payment_status' => 'failed'
             ]);
+            Log::error('ORDER STATUS UPDATED TO FAILED.');
+        } else {
+            Log::error('RESTORE SKIPPED: Order was already failed.');
         }
     }
 }
