@@ -71,7 +71,10 @@ class CheckoutController extends Controller
                 }
 
                 // Use sale-price (discount price) if there is any
-                $price = $variant->discount_price ?? $variant->price;
+                $rawPrice = $variant->discount_price ?? $variant->price;
+                
+                // 💡 حذف کاما (در صورت وجود) و تبدیل قطعی به عدد صحیح
+                $price = (int) str_replace(',', '', $rawPrice);
                 
                 $subtotal += $price * $item['quantity'];
 
@@ -163,8 +166,20 @@ class CheckoutController extends Controller
             // 💡 اتصال به درگاه پارسیان در صورت پرداخت آنلاین
             // ==========================================
             if ($validated['payment_method'] == 'online') {
+                
+                // 💡 جلوگیری از ورود مبالغ نامعتبر به بانک
+                if ($total < 1000) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false, 
+                        'message' => 'مبلغ کل سفارش برای پرداخت آنلاین نامعتبر است: ' . number_format($total) . ' تومان'
+                    ], 422);
+                }
+
                 $pin = 'KTb88t1W5v81863Aay85';
-                $amountInRial = $total * 10; // تبدیل تومان به ریال
+                
+                // 💡 تبدیل قطعی به عدد صحیح و گرد کردن (برای حذف هرگونه اعشار مخفی)
+                $amountInRial = (int) round($total * 10);
                 
                 // آدرسی که بانک پس از پرداخت کاربر را به آن برمی‌گرداند
                 $callbackUrl = url('/api/v1/payment/verify'); 
@@ -223,7 +238,12 @@ class CheckoutController extends Controller
             // اتصال به درگاه دیجی پی
             // ==========================================
             if ($validated['payment_method'] == 'digipay') {
-                $amountInRial = $total * 10;
+                if ($total < 1000) {
+                    DB::rollBack();
+                    return response()->json(['success' => false, 'message' => 'مبلغ کل سفارش نامعتبر است: ' . number_format($total) . ' تومان'], 422);
+                }
+
+                $amountInRial = (int) round($total * 10);
                 $callbackUrl = url('/api/v1/payment/digipay/verify');
 
                 $baseUrl = rtrim(env('DIGIPAY_BASE_URL', 'https://api.mydigipay.com/digipay/api'), '/');
@@ -288,7 +308,7 @@ class CheckoutController extends Controller
 
             DB::commit();
 
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'سفارش شما با موفقیت ثبت شد!',
