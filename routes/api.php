@@ -70,7 +70,7 @@ Route::get('/shipping-methods', function () {
     return response()->json(['success' => true, 'data' => $config]);
 });
 
-Route::post('/payment/verify', [\App\Http\Controllers\CheckoutController::class, 'verifyPayment']);
+Route::post('/payment/verify', [CheckoutController::class, 'verifyPayment']);
 
 Route::post('/api/v1/payment/digipay/verify', [CheckoutController::class, 'verifyDigipayPayment'])
     ->name('payment.digipay.verify')
