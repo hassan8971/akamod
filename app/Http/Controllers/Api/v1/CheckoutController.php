@@ -94,6 +94,7 @@ class CheckoutController extends Controller
             $shippingMethodName = $shippingMethodModel ? $shippingMethodModel->title : $validated['shipping_method'];
             
 
+            $packagingCost = 0;
             $packagingOptionId = null;
             if ($validated['packaging_id'] != 0) {
                 $packagingOption = PackagingOption::find($validated['packaging_id']);
