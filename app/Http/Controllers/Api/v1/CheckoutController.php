@@ -9,6 +9,7 @@ use App\Models\OrderItem;
 use App\Models\PackagingOption;
 use App\Models\Discount;
 use App\Models\ProductVariant;
+use App\Models\ShippingMethod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -17,11 +18,6 @@ use Illuminate\Support\Facades\Http;
 
 class CheckoutController extends Controller
 {
-    // Shipping Costs
-    private $shippingOptions = [
-        'pishaz' => 35000,
-        'tipax' => 60000,
-    ];
 
     /**
      * Store a new order.
@@ -40,7 +36,7 @@ class CheckoutController extends Controller
             'address.phone' => 'required|string|max:20',
             
             // Order options
-            'shipping_method' => 'required|string|in:pishaz,tipax',
+            'shipping_method' => 'required|string|exists:shipping_methods,method_key',
             'packaging_id' => 'required|integer|min:0',
             'discount_code' => 'nullable|string',
             'payment_method' => 'required|string|in:online,cod,card,digipay',
@@ -92,9 +88,12 @@ class CheckoutController extends Controller
             }
 
             // Calculate sidelong prices
-            $shippingCost = $this->shippingOptions[$validated['shipping_method']] ?? 0;
+            // دریافت اطلاعات روش ارسال از دیتابیس به صورت داینامیک
+            $shippingMethodModel = ShippingMethod::where('method_key', $validated['shipping_method'])->first();
+            $shippingCost = $shippingMethodModel ? $shippingMethodModel->cost : 0;
+            $shippingMethodName = $shippingMethodModel ? $shippingMethodModel->title : $validated['shipping_method'];
             
-            $packagingCost = 0;
+
             $packagingOptionId = null;
             if ($validated['packaging_id'] != 0) {
                 $packagingOption = PackagingOption::find($validated['packaging_id']);
@@ -127,7 +126,6 @@ class CheckoutController extends Controller
             $addressData['user_id'] = $user->id;
             $shippingAddress = Address::create($addressData);
             
-            $shippingMethodName = $validated['shipping_method'] === 'pishaz' ? 'پست پیشتاز' : 'تیپاکس';
             
             // 💡 وضعیت پرداخت در لحظه ثبت سفارش همیشه باید pending باشد
             $payment_status = 'pending';
